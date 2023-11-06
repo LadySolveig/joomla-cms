@@ -3,16 +3,16 @@
   * @license    GNU General Public License version 2 or later; see LICENSE.txt
   */
 
-document.addEventListener('DOMContentLoaded', () => {
-  'use strict';
+(() => {
+  // Use a JoomlaExpectingPostMessage flag to be able to distinct legacy methods
+  if (window.parent.JoomlaExpectingPostMessage) {
+    return;
+  }
 
-  // Get the elements
-  const modulesLinks = [].slice.call(document.querySelectorAll('.js-module-insert'));
-  const positionsLinks = [].slice.call(document.querySelectorAll('.js-position-insert'));
   const elNewModule = document.getElementById('importnewmodule');
 
   // Assign listener for click event (for single module id insertion)
-  modulesLinks.forEach((element) => {
+  document.querySelectorAll('.js-module-insert').forEach((element) => {
     element.addEventListener('click', (event) => {
       event.preventDefault();
       const modid = event.target.getAttribute('data-module');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Assign listener for click event (for position insertion)
-  positionsLinks.forEach((element) => {
+  document.querySelectorAll('.js-position-insert').forEach((element) => {
     element.addEventListener('click', (event) => {
       event.preventDefault();
       const position = event.target.getAttribute('data-position');
@@ -56,4 +56,4 @@ document.addEventListener('DOMContentLoaded', () => {
     expirationTime.setTime(expirationTime.getTime() + (60 * 60 * 1000));
     document.cookie = `com_modules_importOnSave=1;expires=${expirationTime.toUTCString()}`;
   });
-});
+})();
