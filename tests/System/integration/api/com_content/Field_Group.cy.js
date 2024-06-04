@@ -1,5 +1,5 @@
 describe('Test that group field content API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
 
   ['article', 'categories'].forEach((context) => {
     const endpoint = context === 'article' ? 'articles' : context;

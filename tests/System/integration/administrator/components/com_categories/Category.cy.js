@@ -1,10 +1,11 @@
 describe('Test in backend that the category form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'Test category'");
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_categories&extension=com_content&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'Test category'"));
 
   it('can create a category', () => {
     cy.visit('/administrator/index.php?option=com_categories&task=category.add&extension=com_content');

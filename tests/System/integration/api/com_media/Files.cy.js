@@ -1,7 +1,9 @@
 describe('Test that media files API endpoint', () => {
   // Ensure test dir is available and has correct permissions
-  beforeEach(() => cy.task('writeFile', { path: 'images/test-dir/dummy.txt', content: '1' }));
-  afterEach(() => cy.task('deleteFolder', 'images/test-dir'));
+  beforeEach(() => {
+    cy.task('deleteFolder', 'images/test-dir');
+    cy.task('writeFile', { path: 'images/test-dir/dummy.txt', content: '1' })
+  });
 
   it('can deliver a list of files', () => {
     cy.api_get('/media/files')

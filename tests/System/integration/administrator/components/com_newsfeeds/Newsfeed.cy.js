@@ -1,6 +1,9 @@
 describe('Test in backend that the newsfeed form', () => {
-  beforeEach(() => cy.doAdministratorLogin());
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__newsfeeds WHERE name = 'Test newsfeed'"));
+  beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__newsfeeds WHERE name = 'Test newsfeed'");
+    cy.doAdministratorLogin()
+  });
 
   it('can create a newsfeed', () => {
     cy.visit('/administrator/index.php?option=com_newsfeeds&task=newsfeed.add');

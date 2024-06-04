@@ -1,5 +1,5 @@
 describe('Test that group field user API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
 
   it('can deliver a list of group fields', () => {
     cy.db_createFieldGroup({ title: 'automated test group field users', context: 'com_users.user' })

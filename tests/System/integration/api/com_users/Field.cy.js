@@ -1,5 +1,5 @@
 describe('Test that field users API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
 
   it('can deliver a list of fields', () => {
     cy.db_createField({ title: 'automated test field', context: 'com_users.user' })

@@ -1,5 +1,5 @@
 describe('Test that group field contact API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields_groups'));
 
   ['contact', 'mail', 'categories'].forEach((context) => {
     it(`can deliver a list of group fields (${context})`, () => {

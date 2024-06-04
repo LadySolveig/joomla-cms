@@ -1,5 +1,5 @@
 describe('Test that content categories API endpoint', () => {
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'automated test content category'"));
+  beforeEach(() => cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'automated test content category'"));
 
   it('can deliver a list of categories', () => {
     cy.db_createCategory({ title: 'automated test content category', extension: 'com_content' })

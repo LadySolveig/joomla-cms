@@ -1,5 +1,5 @@
 describe('Test that field contact API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
 
   ['contact', 'mail', 'categories'].forEach((context) => {
     it(`can deliver a list of fields (${context})`, () => {

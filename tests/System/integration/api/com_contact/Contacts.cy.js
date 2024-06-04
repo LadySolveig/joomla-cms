@@ -1,6 +1,8 @@
 describe('Test that contacts API endpoint', () => {
-  beforeEach(() => cy.task('clearEmails'));
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__contact_details'));
+  beforeEach(() => {
+    cy.task('queryDB', 'DELETE FROM #__contact_details')
+    cy.task('clearEmails')
+  });
 
   it('can deliver a list of contacts', () => {
     cy.db_createContact({ name: 'automated test contact' })

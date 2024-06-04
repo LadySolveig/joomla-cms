@@ -1,5 +1,5 @@
 describe('Test that banners clients API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__banner_clients'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__banner_clients'));
 
   it('can deliver a list of clients', () => {
     cy.db_createBannerClient({ name: 'automated test banner client' })

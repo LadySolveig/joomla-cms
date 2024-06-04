@@ -1,5 +1,5 @@
 describe('Test that menu items site API endpoint', () => {
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__menu WHERE title = 'automated test site menu item' "));
+  beforeEach(() => cy.task('queryDB', "DELETE FROM #__menu WHERE title = 'automated test site menu item' "));
 
   it('can deliver a list of site menu items types', () => {
     cy.api_get('/menus/site/items/types')

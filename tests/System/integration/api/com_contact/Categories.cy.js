@@ -1,5 +1,5 @@
 describe('Test that contact categories API endpoint', () => {
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'automated test contact category'"));
+  beforeEach(() => cy.task('queryDB', "DELETE FROM #__categories WHERE title = 'automated test contact category'"));
 
   it('can deliver a list of categories', () => {
     cy.db_createCategory({ title: 'automated test contact category', extension: 'com_contact' })

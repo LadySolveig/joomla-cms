@@ -1,5 +1,5 @@
 describe('Test that content API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__content'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__content'));
 
   it('can deliver a list of articles', () => {
     cy.db_createArticle({ title: 'automated test article' })

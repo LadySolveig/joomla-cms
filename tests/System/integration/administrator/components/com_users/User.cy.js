@@ -1,6 +1,9 @@
 describe('Test in backend that the user form', () => {
-  beforeEach(() => cy.doAdministratorLogin());
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__users WHERE username = 'test'"));
+  beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__users WHERE username = 'test'");
+    cy.doAdministratorLogin()
+  });
 
   it('can create a new user', () => {
     cy.visit('/administrator/index.php?option=com_users&task=user.add');

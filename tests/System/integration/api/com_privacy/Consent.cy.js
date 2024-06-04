@@ -1,5 +1,5 @@
 describe('Test privacy consent API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__privacy_consents'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__privacy_consents'));
 
   it('can get a list of consents', () => {
     cy.db_createPrivacyConsent({ body: 'test body' })

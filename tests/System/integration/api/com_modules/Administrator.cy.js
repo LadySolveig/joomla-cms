@@ -1,5 +1,5 @@
 describe('Test that modules administrator API endpoint', () => {
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__modules WHERE title = 'automated test administrator module'"));
+  beforeEach(() => cy.task('queryDB', "DELETE FROM #__modules WHERE title = 'automated test administrator module'"));
 
   it('can deliver a list of administrator modules', () => {
     cy.api_get('/modules/administrator')

@@ -1,6 +1,9 @@
 describe('Test in backend that the user access level form', () => {
-  beforeEach(() => cy.doAdministratorLogin());
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__viewlevels WHERE title = 'test level'"));
+  beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__viewlevels WHERE title = 'test level'");
+    cy.doAdministratorLogin()
+  });
 
   it('can create a new access level', () => {
     cy.visit('/administrator/index.php?option=com_users&task=level.add');

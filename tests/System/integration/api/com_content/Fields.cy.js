@@ -1,5 +1,5 @@
 describe('Test that field content API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__fields'));
 
   ['article', 'categories'].forEach((context) => {
     const endpoint = context === 'article' ? 'articles' : context;

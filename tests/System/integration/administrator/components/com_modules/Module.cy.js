@@ -1,10 +1,11 @@
 describe('Test in backend that the module form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__modules WHERE title = 'Test module'")
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_modules&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__modules WHERE title = 'Test module'"));
 
   it('can create a module', () => {
     cy.visit('/administrator/index.php?option=com_modules&task=module.add&client_id=0&eid=44');

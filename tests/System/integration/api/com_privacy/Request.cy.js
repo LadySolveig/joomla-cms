@@ -1,5 +1,5 @@
 describe('Test privacy request API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__privacy_requests'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__privacy_requests'));
 
   it('can get a list of requests', () => {
     cy.db_createPrivacyRequest()

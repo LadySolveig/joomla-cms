@@ -1,5 +1,5 @@
 describe('Test that menus administrator API endpoint', () => {
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__menu_types WHERE title = 'automated test administrator menu' "));
+  beforeEach(() => cy.task('queryDB', "DELETE FROM #__menu_types WHERE title = 'automated test administrator menu' "));
 
   it('can deliver a list of administrator menus', () => {
     cy.api_get('/menus/administrator')

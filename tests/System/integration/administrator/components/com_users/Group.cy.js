@@ -1,6 +1,8 @@
 describe('Test in backend that the user group form', () => {
-  beforeEach(() => cy.doAdministratorLogin());
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__usergroups WHERE title = 'test group'"));
+  beforeEach(() => {
+    cy.task('queryDB', "DELETE FROM #__usergroups WHERE title = 'test group'");
+    cy.doAdministratorLogin()
+  });
 
   it('can create a new group', () => {
     cy.visit('/administrator/index.php?option=com_users&task=group.add');

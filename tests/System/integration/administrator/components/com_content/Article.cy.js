@@ -1,10 +1,11 @@
 describe('Test in backend that the article form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__content WHERE title = 'Test article'");
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_content&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__content WHERE title = 'Test article'"));
 
   it('can create an article', () => {
     cy.visit('/administrator/index.php?option=com_content&task=article.add');

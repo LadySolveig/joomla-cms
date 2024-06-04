@@ -1,10 +1,11 @@
 describe('Test in backend that the tag form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__tags WHERE title = 'Test tag'")
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_tags&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__tags WHERE title = 'Test tag'"));
 
   it('can create a tag', () => {
     cy.visit('/administrator/index.php?option=com_tags&task=tag.add');

@@ -1,10 +1,11 @@
 describe('Test in backend that the contact form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__contact_details WHERE name = 'Test contact'");
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_contact&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__contact_details WHERE name = 'Test contact'"));
 
   it('can create a contact', () => {
     cy.visit('/administrator/index.php?option=com_contact&task=contact.add');

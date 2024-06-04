@@ -1,10 +1,11 @@
 describe('Test in backend that the banners form', () => {
   beforeEach(() => {
+    // Delete test data
+    cy.task('queryDB', "DELETE FROM #__banners WHERE name = 'Test banner'");
     cy.doAdministratorLogin();
     // Clear the filter
     cy.visit('/administrator/index.php?option=com_banners&filter=');
   });
-  afterEach(() => cy.task('queryDB', "DELETE FROM #__banners WHERE name = 'Test banner'"));
 
   it('can create a banner', () => {
     cy.visit('/administrator/index.php?option=com_banners&task=banner.add');

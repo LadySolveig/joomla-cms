@@ -1,5 +1,5 @@
 describe('Test that tags API endpoint', () => {
-  afterEach(() => cy.task('queryDB', 'DELETE FROM #__tags WHERE id > 1'));
+  beforeEach(() => cy.task('queryDB', 'DELETE FROM #__tags WHERE id > 1'));
 
   it('can deliver a list of tags', () => {
     cy.db_createTag({ title: 'automated test tag' })
