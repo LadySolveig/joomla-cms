@@ -37,7 +37,7 @@ if (!empty($editor)) {
 }
 ?>
 <div class="container-popup">
-    <a class="button-new btn btn-success" id="importnewmodule" href="index.php?option=com_modules&view=select&tmpl=component&client_id=0">
+    <a class="button-new btn btn-success" id="importnewmodule" href="index.php?option=com_modules&view=select&layout=modal&tmpl=component&client_id=0">
         <span class="icon-new" aria-hidden="true"></span>
         <?php echo Text::_('JTOOLBAR_NEW'); ?>
     </a>
