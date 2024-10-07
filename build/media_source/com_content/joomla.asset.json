@@ -10,7 +10,7 @@
       "type": "script",
       "uri": "com_content/admin-article-edit.min.js",
       "dependencies": [
-        "com_content.admin-article-edit.es5"
+        "core"
       ],
       "attributes": {
         "type": "module",
