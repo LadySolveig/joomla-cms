@@ -447,89 +447,6 @@ class ArticleModel extends AdminModel implements WorkflowModelInterface
             }
         }
 
-        if ($item->articletext) {
-            // Expression to search for (positions)
-            $regex = '/{loadposition\s(.*?)}/i';
-
-            // Expression to search for (modules)
-            $regexmod = '/{loadmodule\s(.*?)}/i';
-
-            // Expression to search for (id)
-            $regexmodid = '/{loadmoduleid\s([1-9][0-9]*)}/i';
-
-            /**
-             * Find all instances of plugin and put in $matches for loadposition
-             * $matches[0] is full pattern match, $matches[1] is the position
-             */
-            preg_match_all($regex, $item->articletext, $matches, PREG_SET_ORDER);
-            $item->importedPositions = [];
-
-            // No matches, skip this
-            if ($matches) {
-                foreach ($matches as $match) {
-                    $matcheslist = explode(',', $match[1]);
-
-                    $position = trim($matcheslist[0]);
-                    $style    = array_key_exists(1, $matcheslist) ? trim($matcheslist[1]) : 'none';
-
-                    $item->importedPositions[] = array('name' => $position, 'style' => $style, 'editorText' => $match[0]);
-                }
-            }
-
-            // Find all instances of plugin and put in $matchesmod for loadmodule
-            preg_match_all($regexmod, $item->articletext, $matchesmod, PREG_SET_ORDER);
-
-            // If no matches, skip this
-            if ($matchesmod) {
-                foreach ($matchesmod as $matchmod) {
-                    $matchesmodlist = explode(',', $matchmod[1]);
-
-                    $module = trim($matchesmodlist[0]);
-                    $name = array_key_exists(1, $matchesmodlist) ? htmlspecialchars_decode(trim($matchesmodlist[1])) : null;
-
-                    $mod = ModuleHelper::getModule($module, $name);
-
-                    /**
-                     * If the module without the mod_ isn't found, try it with mod_.
-                     * This allows people to enter it either way in the content
-                     */
-                    if (!isset($mod)) {
-                        $mod = ModuleHelper::getModule('mod_' . $module, $name);
-                    }
-
-                    if (isset($mod)) {
-                        $mod->editorText = $matchmod[0];
-                        $item->importedModuleTypes[] = $mod;
-                    }
-                }
-            }
-
-            // Find all instances of loadmoduleid and store it in $matchesmodid
-            preg_match_all($regexmodid, $item->articletext, $matchesmodid, PREG_SET_ORDER);
-            $importedModules = [];
-
-            // If no matches, skip this
-            if ($matchesmodid) {
-                foreach ($matchesmodid as $match) {
-                    $importedModules[] = $match[1];
-                }
-
-                $db = $this->getDbo();
-                $query = $db->getQuery(true)
-                    ->select(
-                        [
-                            $db->quoteName('id'),
-                            $db->quoteName('title'),
-                            $db->quoteName('published'),
-                        ]
-                    )
-                    ->from($db->quoteName('#__modules'));
-                $query->where($db->quoteName('id') . ' IN (' . implode(',', $query->bindArray(array_values($importedModules))) . ')');
-
-                $item->importedModules = $db->setQuery($query)->loadObjectList();
-            }
-        }
-
         return $item;
     }
 
@@ -643,6 +560,117 @@ class ArticleModel extends AdminModel implements WorkflowModelInterface
         }
 
         return $form;
+    }
+
+    /**
+     * Method to get the imported modules from article text.
+     *
+     * @param   integer    $pk  The id of the primary key.
+     *
+     * @return  \stdClass  $importedModules  The imported modules from article text.
+     *
+     * @return
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    public function getImportedModules($pk = null)
+    {
+        $item = $this->getItem($pk);
+
+        $importedModules = ArrayHelper::toObject(['positions' => [], 'modules' => [], 'types' => []], \stdClass::class, false);
+
+        if (!isset($item->articletext)) {
+            return $importedModules;
+        }
+
+        // Expression to search for (positions)
+        $regex = '/{loadposition\s(.*?)}/i';
+
+        // Expression to search for (modules)
+        $regexmod = '/{loadmodule\s(.*?)}/i';
+
+        // Expression to search for (id)
+        $regexmodid = '/{loadmoduleid\s([1-9][0-9]*)}/i';
+
+        /**
+         * Find all instances of plugin and put in $matches for loadposition
+         * $matches[0] is full pattern match, $matches[1] is the position
+         */
+        preg_match_all($regex, $item->articletext, $matches, PREG_SET_ORDER);
+        // $item->importedPositions = [];
+
+        // No matches, skip this
+        if ($matches) {
+            foreach ($matches as $match) {
+                $matcheslist = explode(',', $match[1]);
+
+                $position = trim($matcheslist[0]);
+                $style    = array_key_exists(1, $matcheslist) ? trim($matcheslist[1]) : 'none';
+
+                // $item->importedPositions[] = array('name' => $position, 'style' => $style, 'editorText' => $match[0]);
+                $importedModules->positions[] = ['name' => $position, 'style' => $style, 'editorText' => $match[0]];
+            }
+        }
+
+        // Find all instances of plugin and put in $matchesmod for loadmodule
+        // TODO: ModulesHelper::getModules() Does not work, as only backend modules are loaded when the method is executed from the BackendModel.
+        // preg_match_all($regexmod, $item->articletext, $matchesmod, PREG_SET_ORDER);
+
+        // If no matches, skip this
+        // if ($matchesmod) {
+        //     foreach ($matchesmod as $matchmod) {
+        //         $matchesmodlist = explode(',', $matchmod[1]);
+
+        //         $module = trim($matchesmodlist[0]);
+        //         $name = array_key_exists(1, $matchesmodlist) ? htmlspecialchars_decode(trim($matchesmodlist[1])) : null;
+
+        //         // TODO: Does not work, as only backend modules are loaded when the method is executed from the BackendModel.
+        //         $mod = ModuleHelper::getModule($module, $name);
+
+        //         /**
+        //          * If the module without the mod_ isn't found, try it with mod_.
+        //          * This allows people to enter it either way in the content
+        //          */
+        //         if (!isset($mod)) {
+        //             // TODO: Does not work, as only backend modules are loaded when the method is executed from the BackendModel.
+        //             $mod = ModuleHelper::getModule('mod_' . $module, $name);
+        //         }
+
+        //         if (isset($mod)) {
+        //             $mod->editorText = $matchmod[0];
+        //             // $item->importedModuleTypes[] = $mod;
+        //             $importedModules->types[] = $mod;
+        //         }
+        //     }
+        // }
+
+        // Find all instances of loadmoduleid and store it in $matchesmodid
+        preg_match_all($regexmodid, $item->articletext, $matchesmodid, PREG_SET_ORDER);
+        $importedModulesById = [];
+
+        // If no matches, skip this
+        if ($matchesmodid) {
+            foreach ($matchesmodid as $match) {
+                $importedModulesById[] = $match[1];
+            }
+
+            $db = $this->getDatabase();
+            $query = $db->getQuery(true)
+                ->select(
+                    [
+                        $db->quoteName('id'),
+                        $db->quoteName('title'),
+                        $db->quoteName('published'),
+                    ]
+                )
+                ->from($db->quoteName('#__modules'));
+            $query->where($db->quoteName('id') . ' IN (' . implode(',', $query->bindArray(array_values($importedModulesById))) . ')');
+
+            // $item->importedModules = $db->setQuery($query)->loadObjectList();
+            $importedModules->modules = $db->setQuery($query)->loadObjectList();
+        }
+
+        return $importedModules;
     }
 
     /**

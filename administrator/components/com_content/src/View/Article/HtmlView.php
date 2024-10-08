@@ -106,6 +106,10 @@ class HtmlView extends BaseHtmlView
         $this->state = $model->getState();
         $this->canDo = ContentHelper::getActions('com_content', 'article', $this->item->id);
 
+        if ($this->getLayout() === 'edit' && isset($this->item->id) && $this->item->id !== 0) {
+            $this->item->importedModules = $model->getImportedModules($this->item->id);
+        }
+
         if ($this->getLayout() === 'modalreturn') {
             parent::display($tpl);
 

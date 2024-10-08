@@ -134,12 +134,12 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
         <?php endif; ?>
 
         <?php // Do not show the publishing options if the edit form is configured not to. ?>
-        <?php if ($params->get('show_imported_modules', 1) == 1 && (!empty($this->item->importedModules) || !empty($this->item->importedPositions))) : ?>
+        <?php if ($params->get('show_imported_modules', 1) == 1 && isset($this->item->importedModules) && (!empty($this->item->importedModules->modules) || !empty($this->item->importedModules->positions))) : ?>
             <?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'modules', Text::_('COM_CONTENT_FIELDSET_MODULES')); ?>
             <fieldset id="fieldset-modules" class="options-form">
                 <legend><?php echo Text::_('COM_CONTENT_FIELDSET_MODULES'); ?></legend>
 
-                <?php if (!empty($this->item->importedModules)) : ?>
+                <?php if (isset($this->item->importedModules->modules) && !empty($this->item->importedModules->modules)) : ?>
                     <h3> <?php echo Text::_('COM_CONTENT_FIELDSET_MODULES'); ?> </h3>
                     <table class="table mb-4" id="modules_assigned">
                         <caption class="visually-hidden">
@@ -165,7 +165,7 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php foreach ($this->item->importedModules as $module) : ?>
+                        <?php foreach ($this->item->importedModules->modules as $module) : ?>
                             <tr id="tr-<?php echo $module->id; ?>" class="row<?php echo $module->id % 2; ?>">
                                 <td id="mod-<?php echo $module->id; ?>">
                                     <?php echo $this->escape($module->id); ?>
@@ -207,7 +207,7 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
                     </table>
                 <?php endif; ?>
 
-                <?php if (!empty($this->item->importedModuleTypes)) : ?>
+                <?php if (isset($this->item->importedModules->types) && !empty($this->item->importedModules->types)) : ?>
                     <h3> <?php echo Text::_('COM_CONTENT_HEADING_IMPORTED_MODULE_TYPES'); ?> </h3>
                     <table class="table mb-4" id="modules_assigned">
                         <caption class="visually-hidden">
@@ -233,7 +233,7 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php foreach ($this->item->importedModuleTypes as $module) : ?>
+                        <?php foreach ($this->item->importedModules->types as $module) : ?>
                             <tr>
                                 <td>
                                     <?php echo $this->escape($module->id); ?>
@@ -268,7 +268,7 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
                     </table>
                 <?php endif; ?>
 
-                <?php if (!empty($this->item->importedPositions)) : ?>
+                <?php if (isset($this->item->importedModules->positions) && !empty($this->item->importedModules->positions)) : ?>
                     <h3> <?php echo Text::_('COM_CONTENT_HEADING_IMPORTED_POSITION'); ?> </h3>
                     <table class="table" id="positions_assigned">
                         <caption class="visually-hidden">
@@ -288,7 +288,7 @@ $tmpl    = $tmpl ? '&tmpl=' . $tmpl : '';
                             </tr>
                         </thead>
                         <tbody>
-                        <?php foreach ($this->item->importedPositions as $position) : ?>
+                        <?php foreach ($this->item->importedModules->positions as $position) : ?>
                             <tr>
                                 <td>
                                     <?php echo $this->escape($position["name"]); ?>
