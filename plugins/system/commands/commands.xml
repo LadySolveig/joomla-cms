@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="system" method="upgrade">
+	<name>plg_system_commands</name>
+	<author>Joomla! Project</author>
+	<creationDate>2024-10</creationDate>
+	<copyright>(C) 2024 Open Source Matters, Inc.</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<authorEmail>admin@joomla.org</authorEmail>
+	<authorUrl>www.joomla.org</authorUrl>
+	<version>__DEPLOY_VERSION__</version>
+	<description>PLG_SYSTEM_COMMANDS_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\System\Commands</namespace>
+	<media destination="plg_system_commands" folder="media">
+		<folder>js</folder>
+	</media>
+	<files>
+		<folder plugin="commands">services</folder>
+		<folder>src</folder>
+	</files>
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_system_commands.ini</language>
+		<language tag="en-GB">language/en-GB/plg_system_commands.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="timeout"
+					type="number"
+					label="PLG_SYSTEM_COMMANDS_TIMEOUT_LABEL"
+					description="PLG_SYSTEM_COMMANDS_TIMEOUT_DESC"
+					required="true"
+					start="1"
+					step="1"
+					default="2000"
+				/>
+			</fieldset>
+		</fields>
+	</config>
+</extension>
