@@ -10,14 +10,21 @@
 
 namespace Joomla\Plugin\System\Commands\Extension;
 
+use Joomla\CMS\Access\Exception\NotAllowed;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\GenericEvent;
+use Joomla\CMS\Event\Plugin\AjaxEvent;
+use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Module\Submenu\Administrator\Menu\Menu;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -30,6 +37,15 @@ use Joomla\Event\SubscriberInterface;
  */
 final class Commands extends CMSPlugin implements SubscriberInterface
 {
+
+    /**
+     * Flag to check if command dialog template is append to body.
+     *
+     * @var    boolean
+     * @since  __DEPLOY_VERSION__
+     */
+    protected $isTemplateAppend = false;
+
     /**
      * Returns an array of events this subscriber will listen to.
      *
@@ -53,6 +69,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             'onBeforeCompileHead'      => 'initialize',
             'onLoadCommands'           => 'addCommands',
             'onAfterRender'            => 'onAfterRender',
+            'onAjaxCommands'           => 'onAjaxCommands',
         ];
     }
 
@@ -111,7 +128,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $openHotKey = $this->params->get('openhotkey', 'cmd+alt+k,ctrl+alt+k');
 
-
         $document->addScriptOptions('plg_system_commands.commands', $commands);
         $document->addScriptOptions('plg_system_commands.timeout', $timeout);
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
@@ -149,6 +165,140 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     }
 
     /**
+     * Check if current user is allowed to send the data.
+     *
+     * @return  bool
+     *
+     * @since __DEPLOY_VERSION__
+     *
+     * @throws \Exception
+     */
+    private function isAllowedUser(): bool
+    {
+        return $this->getApplication()->getIdentity()->authorise('core.login.admin');
+    }
+
+    /**
+     * Ajax command to load command items
+     *
+     * @param   AjaxEvent  $event  The event object
+     * @return  void
+     *
+     * @since _DEPLOY_VERSION_
+     *
+     * @throws  Notallowed  If user is not allowed
+     *
+     */
+    public function onAjaxCommands(AjaxEvent $event)
+    {
+        if (!Session::checkToken('request')) {
+            return;
+        }
+
+        /**
+         * @var Joomla\CMS\Application\AdministratorApplication $app
+         */
+        $app = $this->getApplication();
+
+        if (!$app->isClient('administrator') || !$this->isAllowedUser()) {
+            throw new NotAllowed($this->getApplication()->getLanguage()->_('JGLOBAL_AUTH_ACCESS_DENIED'), 403);
+        };
+
+        $search = $app->getInput()->getString('search', '');
+
+        /* if (empty($search)) {
+            $response['success'] = false;
+            $response['message'] = $this->getApplication()->getLanguage()->_('PLG_SYSTEM_COMMANDS_SEARCH_EMPTY');
+
+            $event->updateEventResult($response);
+            return;
+        } */
+
+        $adminMenuItem = MenusHelper::loadPreset('default');
+
+        Menu::preprocess($adminMenuItem);
+
+        $items = [];
+
+        /**
+         * Things to consider for next time
+         * - Headings should become prefix of the items
+         * - each menu item has only two (three) levels
+         * |- Heading
+         * |- Item | Dashboard and Quickicon
+         *
+         * e.g. Contacts: Add category
+         * e.g. Content: Add article
+         */
+        if ($adminMenuItem->hasChildren()) {
+            $items = $this->normalizeMenuItems($adminMenuItem);
+        }
+
+        $items = array_filter($items, function ($item) use ($search) {
+            return strpos($item['title'], $search) !== false;
+        });
+
+        usort($items, function ($a, $b) {
+            return strcmp($a['title'], $b['title']);
+        });
+
+        $response['success'] = true;
+        $response['items'] = $items;
+
+        // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
+        $event->updateEventResult($response);
+    }
+
+    /**
+     * Normalize menu items
+     *
+     * @return array
+     */
+    protected function normalizeMenuItems($parent): array
+    {
+        $menuItems = [];
+
+        if (!$parent->hasChildren()) {
+            return $menuItems;
+        }
+
+        $children = $parent->getChildren();
+
+        foreach ($children as $item) {
+
+            if ($item->type === 'component' && !in_array($item->type, ['heading', 'separator'])) {
+
+                $menuItems[] = [
+                    'title' => Text::_($item->title),
+                    'link'  => Route::_($item->link),
+                ];
+
+                if ($item->getParams()->get('menu-quicktask')) {
+                    $menuItems[count($menuItems) - 1]['quicktask'] = [
+                        'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
+                        'link'  => Route::_($item->getParams()->get('menu-quicktask')),
+                    ];
+                }
+
+                /* if ($item->getParams()->get('menu-quicktask')) {
+                    $menuItems[] = [
+                        'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
+                        'link'  => Route::_($item->getParams()->get('menu-quicktask')),
+                    ];
+                }*/
+            }
+
+            if ($item->hasChildren()) {
+                $subMenu = $this->normalizeMenuItems($item);
+
+                $menuItems = array_merge($menuItems, $subMenu);
+            }
+        }
+
+        return $menuItems;
+    }
+
+    /**
      * Add Html-Template for the command palette.
      *
      * @return  void
@@ -168,9 +318,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             return;
         }*/
 
-        static $loaded = false;
-
-        if (!$loaded) {
+        if (!$this->isTemplateAppend) {
 
             $templateCommandPalette = LayoutHelper::render('joomla.commands.default');
 
@@ -193,19 +341,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
             $app->setBody($bodyBuffer);
 
-            $loaded = true;
+            $this->isTemplateAppend = true;
         }
-    }
-
-    private function checkTemplateAlreadyAvailabel($content)
-    {
-        $dom = new \DOMDocument();
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        $template = $dom->getElementById('command-dialog-search');
-        if ($template) {
-            return true;
-        }
-        return false;
     }
 }

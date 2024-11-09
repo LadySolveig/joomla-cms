@@ -168,13 +168,57 @@ const initCommandsModal = (options) => {
   // content.appendChild(intro);
   // content.appendChild(info);
 
-  let template = document.querySelector('#command-dialog-search');
+  // Default template for dialog search
+  const template = document.querySelector('#command-dialog-search');
   content.appendChild(template.content.cloneNode(true));
 
   // Default template for the popup
-const popupTemplate = `<div class="joomla-dialog-container">
-<section class="joomla-dialog-body"></section>
-</div>`;
+  const popupTemplate = `<div class="joomla-dialog-container">
+  <section class="joomla-dialog-body"></section>
+  </div>`;
+
+  // url for ajax call
+  const baseUrl = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
+
+  console.log(baseUrl);
+
+  /* alerts[0].querySelector('.eosnotify-snooze-btn').addEventListener('click', () => fetch(url, { headers: { 'X-CSRF-Token': Joomla.getOptions('csrf.token') || '' } })
+      .then((response) => {
+        if (response.ok) {
+          alerts[0].closest('joomla-alert').close();
+        }
+      })); */
+      // url: `${baseUrl}&type=${type}&plugin=SampledataApplyStep${step}&step=${step}`,
+  Joomla.request({
+    url: `${baseUrl}`,
+    method: 'GET',
+    perform: true,
+    onSuccess: (resp) => {
+      console.log('successfull response');
+      let response = {};
+
+      try {
+        response = JSON.parse(resp);
+      } catch (e) {
+        // Joomla.renderMessages({ error: [Joomla.Text._('MOD_SAMPLEDATA_INVALID_RESPONSE')] }, `.sampledata-steps-${type}-${step}`);
+        return;
+      }
+
+      if (response.success && response.data && response.data.length > 0) {
+        console.log('successfull response');
+        console.log(response.data);
+      }
+    },
+    onError: () => {
+      Joomla.renderMessages({ error: [Joomla.Text._('MOD_SAMPLEDATA_ERROR_RESPONSE')] });
+      window.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      });
+      // SampleData.inProgress = false;
+    },
+  });
 
   commandsDialog = new JoomlaDialog({
     // textHeader: Joomla.Text._('PLG_SYSTEM_COMMANDS_OVERVIEW_TITLE'),
