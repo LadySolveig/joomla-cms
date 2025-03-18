@@ -313,6 +313,18 @@
       }
     },
     {
+      "name": "webcomponent.drop-list-item",
+      "type": "script",
+      "uri": "system/joomla-drop-list-item.min.js",
+      "attributes": {
+        "type": "module"
+      },
+      "dependencies": [
+        "wcpolyfill",
+        "core"
+      ]
+    },
+    {
       "name": "webcomponent.field-fancy-select-legacy",
       "type": "script",
       "deprecated": true,
@@ -337,6 +349,24 @@
         "choicesjs",
         "webcomponent.field-fancy-select-legacy"
       ]
+    },
+    {
+      "name": "webcomponent.field-form-builder",
+      "type": "script",
+      "uri": "system/fields/joomla-field-form-builder.min.js",
+      "attributes": {
+        "type": "module"
+      },
+      "dependencies": [
+        "wcpolyfill",
+        "core",
+        "webcomponent.drop-list-item"
+      ]
+    },
+    {
+      "name": "webcomponent.field-form-builder",
+      "type": "style",
+      "uri": "system/fields/joomla-field-form-builder.min.css"
     },
     {
       "name": "webcomponent.field-media",

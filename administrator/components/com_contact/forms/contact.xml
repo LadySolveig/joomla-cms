@@ -717,6 +717,14 @@
 				</field>
 
 				<field
+					name="formbuilder"
+					type="Formbuilder"
+					label="COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_LABEL"
+					parentclass="stack"
+					showon="show_email_form!:0"
+				/>
+
+				<field
 					name="show_email_copy"
 					type="list"
 					label="COM_CONTACT_FIELD_EMAIL_EMAIL_COPY_LABEL"
