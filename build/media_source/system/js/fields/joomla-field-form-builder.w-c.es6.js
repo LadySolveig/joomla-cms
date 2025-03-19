@@ -14,12 +14,12 @@ if (!window.Joomla) {
 const addSortable = (menu) => {
   if (!menu.querySelector('[data-task="down"]')) {
     let btnDown = document.createElement('li');
-    btnDown.innerHTML = '<button role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>Down</button>';
+    btnDown.innerHTML = `<button role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
     menu.firstElementChild.after(btnDown);
   }
   if (menu.querySelector('[data-task="up"]')) return;
   let btnUp = document.createElement('li');
-  btnUp.innerHTML = '<button role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>Up</button>';
+  btnUp.innerHTML = `<button role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
   menu.firstElementChild.after(btnUp);
 };
 
@@ -184,7 +184,7 @@ class JoomlaFormBuilder extends HTMLElement {
       templateContent = template.content;
     }
 
-    this.formbuilder = this.attachShadow({ mode: 'open' }); // XXX document.createElement('formbuilder');
+    this.formbuilder = this.attachShadow({ mode: 'open' });
     this.formbuilder.appendChild(templateContent);
 
     // Get template parts
@@ -259,8 +259,8 @@ class JoomlaFormBuilder extends HTMLElement {
       this.querySelector(`span[slot="${slotName}"]`).appendChild(item);
       // Change the menu item text for add or remove from form
       btn.innerHTML = (slotName === 'field-form')
-        ? '<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>Remove'
-        : '<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>Add'; // TODO Language strings
+        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE')}`
+        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD')}`;
 
       // Add or remove sortable functionality
       const menu = btn.closest('.dropdown-menu');
@@ -291,6 +291,54 @@ class JoomlaFormBuilder extends HTMLElement {
       if (next) {
         container.insertBefore(next, item);
       }
+    }
+
+    if (task === 'required') {
+      const item = event.target.closest('[data-formbuilder]');
+      if (!item) return;
+      console.log('Debug: task required:', item);
+      const data = JSON.parse(item.dataset.formbuilder);
+      if (!data) return;
+      const btn = event.target;
+      if (data.required === true) {
+        const badge = item.querySelector('.badge-required');
+        if (badge) {
+          badge.remove();
+        }
+        btn.innerHTML = `<span class="icon-lock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_TRUE')}`;
+      } else {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2';
+        badge.innerHTML = Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
+        item.querySelector('.joomla-formbuilder_item-badges').prepend(badge);
+        btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE')}`;
+      }
+      data.required = !data.required;
+      item.dataset.formbuilder = JSON.stringify(data);
+    }
+
+    if (task === 'hide') {
+      const item = event.target.closest('[data-formbuilder]');
+      if (!item) return;
+      console.log('Debug: task hide:', item);
+      const data = JSON.parse(item.dataset.formbuilder);
+      if (!data) return;
+      const btn = event.target;
+      if (data.hidden === true) {
+        const badge = item.querySelector('.badge-hidden');
+        if (badge) {
+          badge.remove();
+        }
+        btn.innerHTML = `<span class="icon-eye-slash icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_HIDE')}`;
+      } else {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-hidden text-bg-info fs-5 fw-medium mt-1 me-0 m-2';
+        badge.innerHTML = Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
+        item.querySelector('.joomla-formbuilder_item-badges').appendChild(badge);
+        btn.innerHTML = `<span class="icon-eye icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_SHOW')}`;
+      }
+      data.hidden = !data.hidden;
+      item.dataset.formbuilder = JSON.stringify(data);
     }
 
   }
@@ -352,8 +400,8 @@ class JoomlaFormBuilder extends HTMLElement {
     if (menu) {
       // Change the menu item text for add or remove from form
       menu.querySelector('[data-task="move"]').innerHTML = (slotName === 'field-form')
-        ? '<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>Remove'
-        : '<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>Add'; // TODO Language strings
+        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE')}`
+        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD')}`;
       // Add or remove sortable functionality
       (slotName === 'field-form') ? addSortable(menu) : removeSortable(menu);
     }
