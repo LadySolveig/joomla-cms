@@ -11,6 +11,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 
@@ -57,6 +58,18 @@ $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 $wa->useScript('webcomponent.field-form-builder');
 $wa->useScript('webcomponent.drop-list-item');
 $wa->useStyle('webcomponent.field-form-builder');
+
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_HIDE');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_SHOW');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_TRUE');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
+Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
 
 ?>
 <joomla-form-builder>

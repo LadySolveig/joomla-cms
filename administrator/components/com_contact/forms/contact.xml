@@ -720,6 +720,7 @@
 					name="formbuilder"
 					type="Formbuilder"
 					label="COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_LABEL"
+					description="COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_DESC"
 					parentclass="stack"
 					showon="show_email_form!:0"
 				/>
