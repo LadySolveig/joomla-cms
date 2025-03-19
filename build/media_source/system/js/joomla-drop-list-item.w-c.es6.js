@@ -36,9 +36,9 @@ class JoomlaDropListItem extends HTMLElement {
     // Add the event listeners
     this.addEventListener("dragstart", this);
     this.addEventListener("dragend", this);
-    this.addEventListener("drop", this);
     this.addEventListener("dragover", this);
     this.addEventListener("dragleave", this);
+    this.addEventListener('click', this);
   }
 
   /**
@@ -71,6 +71,59 @@ class JoomlaDropListItem extends HTMLElement {
 
   ondragleave() {
     this.removeAttribute("over");
+  }
+
+  /**
+   * Clear elements on click events
+   * @param  {Event} event The event object
+   */
+  onclick(event) {
+    // Get the task
+    let task = event.target.getAttribute('data-task');
+    if (!task) return;
+
+    // Prevent submit
+    event.preventDefault();
+
+    if (task === 'up') {
+      const item = event.target instanceof JoomlaDropListItem ? event.target : event.target.closest('joomla-drop-list-item');
+      if (!item) return;
+      const prev = item.previousElementSibling;
+      const container = item.parentNode;
+      if (prev) {
+        container.insertBefore(item, prev);
+        this.emit('up', { item: item });
+      }
+    }
+
+    if (task === 'down') {
+      const item = event.target instanceof JoomlaDropListItem ? event.target : event.target.closest('joomla-drop-list-item');
+      if (!item) return;
+      const next = item.nextElementSibling;
+      const container = item.parentNode;
+      if (next) {
+        container.insertBefore(next, item);
+        this.emit('down', { item: item });
+      }
+    }
+  }
+
+  /**
+     * Emit a custom event
+     * @param  {Object} detail Any details to pass along with the event
+     */
+  emit (task = '', detail = {}) {
+
+    // Create a new event
+    let event = new CustomEvent(`joomla-drop-list-item${task ? `:${task}` : ''}`, {
+        bubbles: true,
+        cancelable: false,
+        detail: detail
+    });
+
+    // Dispatch the event
+    return this.dispatchEvent(event);
+
   }
 };
 
