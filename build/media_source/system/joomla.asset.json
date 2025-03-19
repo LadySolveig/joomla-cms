@@ -313,6 +313,18 @@
       }
     },
     {
+      "name": "webcomponent.drop-list",
+      "type": "script",
+      "uri": "system/joomla-drop-list.min.js",
+      "attributes": {
+        "type": "module"
+      },
+      "dependencies": [
+        "wcpolyfill",
+        "core"
+      ]
+    },
+    {
       "name": "webcomponent.drop-list-item",
       "type": "script",
       "uri": "system/joomla-drop-list-item.min.js",
