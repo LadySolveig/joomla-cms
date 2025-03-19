@@ -170,7 +170,7 @@ class FormbuilderField extends FormField
         }
         foreach ($form->getGroup('') as $field) {
             // set the data attributes for the formbuilder in each field
-            $formbuilderFieldData = 
+            $formbuilderFieldData =
             json_encode(
                 [
                 'name' => $field->fieldname,
@@ -183,10 +183,7 @@ class FormbuilderField extends FormField
             $form->setFieldAttribute($field->fieldname, 'data-formbuilder', $formbuilderFieldData);
             // disable the fields and remove required
             $form->setFieldAttribute($field->fieldname, 'disabled', 'disabled');
-            if ($field->required) {
-                $form->setFieldAttribute($field->fieldname, 'required', 'false');
-            }
-            $form->setFieldAttribute($field->fieldname, 'labelclass', $form->getFieldAttribute($field->fieldname, 'labelclass') . ($form->getFieldAttribute($field->fieldname, 'required') ? ' show-required' : ''));
+            $form->setFieldAttribute($field->fieldname, 'hidden', 'false');
             $form->setFieldAttribute($field->fieldname, 'required', 'false');
         }
         $label       = !empty($this->element['label']) ? (string) $this->element['label'] : null;
