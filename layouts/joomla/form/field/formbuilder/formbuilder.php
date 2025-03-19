@@ -56,24 +56,36 @@ extract($displayData);
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 $wa->useScript('webcomponent.field-form-builder');
+$wa->useScript('webcomponent.drop-list');
 $wa->useScript('webcomponent.drop-list-item');
 $wa->useStyle('webcomponent.field-form-builder');
 
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_HIDE');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_SHOW');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_TRUE');
+// @todo needed?
+// Populate the media config
+// $config = [
+    // 'canCreate'           => $user->authorise('core.create', 'com_media'),
+    // 'canEdit'             => $user->authorise('core.edit', 'com_media'),
+    // 'canDelete'           => $user->authorise('core.delete', 'com_media'),
+// ];
+// $this->getDocument()->addScriptOptions('com_media', $config);
+
 Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE');
 Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP');
 Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN');
 Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
+Text::script('JGLOBAL_FIELD_ADD');
+Text::script('JGLOBAL_FIELD_REMOVE');
+Text::script('JSHOW');
+Text::script('JHIDE');
+Text::script('JOPTION_REQUIRED');
 
 ?>
 <joomla-form-builder>
+<joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
+</joomla-drop-list>
+<joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
     <span slot="field-available">
         <?php echo LayoutHelper::render('joomla.form.field.formbuilder.available-fields', ['form' => $form]); ?>
     </span>
+</joomla-drop-list>
 </joomla-form-builder>

@@ -7,31 +7,6 @@ if (!window.Joomla) {
   throw new Error('JoomlaEditors API require Joomla to be loaded.');
 }
 
-/**
-   * Add sortable functionality to the menu
-   * @param {HTMLElement} menu The menu element
-   */
-const addSortable = (menu) => {
-  if (!menu.querySelector('[data-task="down"]')) {
-    let btnDown = document.createElement('li');
-    btnDown.innerHTML = `<button role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
-    menu.firstElementChild.after(btnDown);
-  }
-  if (menu.querySelector('[data-task="up"]')) return;
-  let btnUp = document.createElement('li');
-  btnUp.innerHTML = `<button role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
-  menu.firstElementChild.after(btnUp);
-};
-
-/**
- * Remove sortable functionality from the menu
- * @param {HTMLElement} menu The menu element
- */
-const removeSortable = (menu) => {
-  menu.querySelector('[data-task="down"]').remove();
-  menu.querySelector('[data-task="up"]').remove();
-};
-
 // Default template for the formbuilder
 const formbuilderTemplate = document.createElement('template');
 
@@ -54,20 +29,6 @@ formbuilderTemplate.innerHTML = `
   :host > * {
     box-sizing: border-box;
   }
-  .joomla-formbuilder-available-items {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    height: auto;
-    border: 2px dotted var(--atum-btn-info);
-  }
-  .joomla-formbuilder-form-items {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    height: auto;
-    border: 2px dotted var(--atum-btn-info);
-  }
   .joomla-formbuilder-item {
     position: relative;
     width: 100%;
@@ -78,16 +39,6 @@ formbuilderTemplate.innerHTML = `
     background: var(--form-control-bg);
     border: var(--form-control-border);
   }
-  :host(.dropstart .drop down-toggle::before) {
-    border: none;
-    display: none;
-  }
-  div[active] {
-    border-color: var(--template-bg-dark-60);
-    border-width: 3px;
-    background-color: var(--template-bg-dark-30);
-    color: white;
-  }
   slot[name="field-form"],
   slot[name="field-available"] {
     display: flex;
@@ -96,14 +47,7 @@ formbuilderTemplate.innerHTML = `
     height: auto;
   }
 </style>
-<div class="joomla-formbuilder-form-items">
-    <slot name="field-form">
-    </slot>
-</div>
-<div class="joomla-formbuilder-available-items">
-    <slot name="field-available">
-    </slot>
-</div>`;
+<slot></slot>`;
 
 /**
  * JoomlaFormBuilder class for Joomla Form Builder implementation.
@@ -161,13 +105,6 @@ class JoomlaFormBuilder extends HTMLElement {
   }
 
   /**
-   * Internal. Connected Callback.
-   */
-  connectedCallback() {
-
-  }
-
-  /**
    * Internal. Render a main layout, based on given template.
    * @returns {JoomlaFormBuilder}
    */
@@ -187,51 +124,59 @@ class JoomlaFormBuilder extends HTMLElement {
     this.formbuilder = this.attachShadow({ mode: 'open' });
     this.formbuilder.appendChild(templateContent);
 
-    // Get template parts
-    this.formbuilderAvailableItemsContainer = this.formbuilder.querySelector('.joomla-formbuilder-available-items');
-    this.formbuilderFormItemsContainer = this.formbuilder.querySelector('.joomla-formbuilder-form-items');
-    this.formbuilderTmplH = this.formbuilder.querySelector('.joomla-formbuilder-header');
+    return this;
+  }
 
-    if (!this.formbuilderAvailableItemsContainer) {
-      throw new Error('The availabel items container not found in the template.');
-    }
+  /**
+	 * Runs each time the element is appended to or moved in the DOM
+	 */
+	connectedCallback () {
 
-    // Add the event listeners
-    // When an element is dragged into or out of this container.
-    this.formbuilderAvailableItemsContainer.addEventListener('dragleave', this.__dzDragLeave.bind(this.formbuilderAvailableItemsContainer));
-    // During and right after the drop on this container.
-    this.formbuilderAvailableItemsContainer.addEventListener('drop', this.__dzDropHandler.bind(this.formbuilderAvailableItemsContainer));
-    this.formbuilderAvailableItemsContainer.addEventListener('dragover', this.__dzDragover.bind(this.formbuilderAvailableItemsContainer));
-
-    // Add the dropzone attribute
-    this.formbuilderAvailableItemsContainer.setAttribute("dropzone", "move");
+    this.formbuilderFormItemsContainer = this.querySelector('.joomla-formbuilder-form-items');
 
     if (!this.formbuilderFormItemsContainer) {
       throw new Error('The form items container not found in the template.');
     }
 
-    // Add the event listeners for the dropzone containers
-    // When an element is dragged into or out of this container.
-    this.formbuilderFormItemsContainer.addEventListener('dragleave', this.__dzDragLeave.bind(this.formbuilderFormItemsContainer));
-    // During and right after the drop on this container.
-    this.formbuilderFormItemsContainer.addEventListener('drop', this.__dzDropHandler.bind(this.formbuilderFormItemsContainer));
-    this.formbuilderFormItemsContainer.addEventListener('dragover', this.__dzDragover.bind(this.formbuilderFormItemsContainer));
+    // Get template parts
+    this.formbuilderAvailableItemsContainer = this.querySelector('.joomla-formbuilder-available-items');
 
-    // Add the dropzone attribute
-    this.formbuilderFormItemsContainer.setAttribute("dropzone", "move");
+    if (!this.formbuilderAvailableItemsContainer) {
+      throw new Error('The availabel items container not found in the template.');
+    }
 
     // Setup event listeners
 		this.addEventListener('click', this);
+    this.addEventListener('joomla-drop-list-item:up', this);
+    this.addEventListener('joomla-drop-list-item:down', this);
+    this.addEventListener('joomla-drop-list:dropped', this);
+	}
 
-    return this;
-  }
+  /**
+	 * Runs when the element is removed from the DOM
+	 */
+	disconnectedCallback () {
+		// Setup event listeners
+		this.removeEventListener('click', this);
+    this.removeEventListener('joomla-drop-list-item:up', this);
+    this.removeEventListener('joomla-drop-list-item:down', this);
+    this.removeEventListener('joomla-drop-list:drop', this);
+	}
 
   /**
    * Handle event listeners
    * @param  {Event} event The event object
    */
   handleEvent(event) {
-    this[`on${event.type}`](event);
+    this[`on${event.type.replaceAll('-', '_').replaceAll(':', '_')}`](event);
+  }
+
+  onjoomla_drop_list_item_up(event) {
+    console.log('Debug: onjoomla_drop_list_item_up:', event);
+  }
+
+  onjoomla_drop_list_item_down(event) {
+    console.log('Debug: onjoomla_drop_list_item_down:', event);
   }
 
   /**
@@ -259,38 +204,18 @@ class JoomlaFormBuilder extends HTMLElement {
       this.querySelector(`span[slot="${slotName}"]`).appendChild(item);
       // Change the menu item text for add or remove from form
       btn.innerHTML = (slotName === 'field-form')
-        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE')}`
-        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD')}`;
+        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_REMOVE')}`
+        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_ADD')}`;
 
       // Add or remove sortable functionality
       const menu = btn.closest('.dropdown-menu');
       if (!menu) return;
       if (slotName === 'field-form') {
-        addSortable(menu);
+        this.addSortable(menu);
         return;
       }
-      removeSortable(menu);
+      this.removeSortable(menu);
 
-    }
-
-    if (task === 'up') {
-      const item = event.target.closest('joomla-drop-list-item');
-      if (!item) return;
-      const prev = item.previousElementSibling;
-      const container = item.parentNode;
-      if (prev) {
-        container.insertBefore(item, prev);
-      }
-    }
-
-    if (task === 'down') {
-      const item = event.target.closest('joomla-drop-list-item');
-      if (!item) return;
-      const next = item.nextElementSibling;
-      const container = item.parentNode;
-      if (next) {
-        container.insertBefore(next, item);
-      }
     }
 
     if (task === 'required') {
@@ -305,11 +230,11 @@ class JoomlaFormBuilder extends HTMLElement {
         if (badge) {
           badge.remove();
         }
-        btn.innerHTML = `<span class="icon-lock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_TRUE')}`;
+        btn.innerHTML = `<span class="icon-lock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JOPTION_REQUIRED')}`;
       } else {
         const badge = document.createElement('span');
         badge.className = 'badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2';
-        badge.innerHTML = Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL');
+        badge.innerHTML = Joomla.Text._('JOPTION_REQUIRED');
         item.querySelector('.joomla-formbuilder_item-badges').prepend(badge);
         btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE')}`;
       }
@@ -329,13 +254,13 @@ class JoomlaFormBuilder extends HTMLElement {
         if (badge) {
           badge.remove();
         }
-        btn.innerHTML = `<span class="icon-eye-slash icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_HIDE')}`;
+        btn.innerHTML = `<span class="icon-eye-slash icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JHIDE')}`;
       } else {
         const badge = document.createElement('span');
         badge.className = 'badge badge-hidden text-bg-info fs-5 fw-medium mt-1 me-0 m-2';
         badge.innerHTML = Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
         item.querySelector('.joomla-formbuilder_item-badges').appendChild(badge);
-        btn.innerHTML = `<span class="icon-eye icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_SHOW')}`;
+        btn.innerHTML = `<span class="icon-eye icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JSHOW')}`;
       }
       data.hidden = !data.hidden;
       item.dataset.formbuilder = JSON.stringify(data);
@@ -347,119 +272,51 @@ class JoomlaFormBuilder extends HTMLElement {
  * Functionality for the list container once and item has been dropped
  * @param {object} event drop
  */
-  __dzDropHandler(event) {
-    event.preventDefault();
+  // __dzDropHandler(event) {
+  onjoomla_drop_list_dropped(event) {
 
-    if (!this.__draggingElement) {
-      return;
-    }
+    console.log('Debug: onjoomla_drop_list_drop:', event.detail.originEvent, event.detail.droppedElement);
 
-    // Only stop probagate if the dragged element is acceptable to the container. // @todo
-    event.stopPropagation();
+    const slotName = event.detail.originEvent.target.querySelector('[slot]') ? event.detail.originEvent.target.querySelector('[slot]').getAttribute('slot') : '';
 
-    // Get the correct slotname in this context
-    const slotName = (this.classList.contains('joomla-formbuilder-available-items') ? 'field-available' : 'field-form');
+    console.log('Debug: slotName:', slotName);
 
-    // Add the slot if not exists yet
-    if (!this.getRootNode().host.querySelector(`span[slot="${slotName}"]`)) {
-      this.getRootNode().host.insertAdjacentHTML('beforeEnd', `<span slot="${slotName}"></span>`);
-    }
-    // Get all items in this container
-    const items = this.getRootNode().host.querySelector(`span[slot="${slotName}"]`).querySelectorAll('joomla-drop-list-item');
-
-    if (items.length >= 1) {
-      // Get the clientY from the drop position from the event
-      const clientY = event?.detail?.clientY || event?.clientY;
-      // Get the closest element to the dragging element
-      const dropElementClosest = [...items].reduce((closest, curr) => {
-        if (curr === this.__draggingElement) {
-          return closest;
-        }
-        const currBox = curr.getBoundingClientRect();
-        const offset = clientY - (currBox.top + (currBox.height / 2));
-        if (offset >= 0 || offset < closest.offset) {
-          return closest;
-        }
-
-        return {offset, element: curr};
-      }, {offset: Number.NEGATIVE_INFINITY});
-
-      // Insert the dragging element before the closest element if possible
-      if (dropElementClosest.element) {
-        dropElementClosest.element.before(this.__draggingElement);
-      } else {
-        this.getRootNode().host.querySelector(`span[slot="${slotName}"]`).appendChild(this.__draggingElement);
-      }
-    } else {
-      // Append the dragging element to the container
-      this.getRootNode().host.querySelector(`span[slot="${slotName}"]`).appendChild(this.__draggingElement);
-    }
-
-    const menu = this.__draggingElement.querySelector('.dropdown-menu');
+    const menu = event.detail.droppedElement.querySelector('.dropdown-menu');
 
     if (menu) {
       // Change the menu item text for add or remove from form
       menu.querySelector('[data-task="move"]').innerHTML = (slotName === 'field-form')
-        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_REMOVE')}`
-        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD')}`;
+        ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_REMOVE')}`
+        : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_ADD')}`;
       // Add or remove sortable functionality
-      (slotName === 'field-form') ? addSortable(menu) : removeSortable(menu);
+      (slotName === 'field-form') ? this.addSortable(menu) : this.removeSortable(menu);
     }
-
-    // Reset the dragging element and remove the active attribute
-    this.__draggingElement = null;
-    this.removeAttribute("active");
   }
 
   /**
-   * Functionality for the list container once we leave the dropzone
-   * @param {object} event drop
+   * Add sortable functionality to the menu
+   * @param {HTMLElement} menu The menu element
    */
-  __dzDragLeave(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    this.__draggingElement = null;
-
-    // Remove the active attribute.
-    this.removeAttribute("active");
-  }
+  addSortable = (menu) => {
+    if (!menu.querySelector('[data-task="down"]')) {
+      let btnDown = document.createElement('li');
+      btnDown.innerHTML = `<button role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
+      menu.firstElementChild.after(btnDown);
+    }
+    if (menu.querySelector('[data-task="up"]')) return;
+    let btnUp = document.createElement('li');
+    btnUp.innerHTML = `<button role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
+    menu.firstElementChild.after(btnUp);
+  };
 
   /**
-   * Functionality for the list container once we are hover on the list
-   * @param {object} event drop
+   * Remove sortable functionality from the menu
+   * @param {HTMLElement} menu The menu element
    */
-  __dzDragover(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // Add the active attribute.
-    this.setAttribute("active", "");
-
-    let found;
-
-    if (!this.__draggingElement) {
-      // find what we're looking for in the composed path that isn't a slot
-      found = event.composedPath().find((i) => {
-        if (i.nodeType === 1 && i.nodeName !== "SLOT") {
-          return i;
-        }
-      });
-
-      if (found) {
-        // find where we are deep in the change
-        const theLowestShadowRoot = found.getRootNode();
-        this.__draggingElement = theLowestShadowRoot.querySelector(
-          "[dragging]"
-        );
-        if (!this.__draggingElement) {
-          this.__draggingElement = document.querySelector("[dragging]");
-        }
-      } else {
-        this.__draggingElement = document.querySelector("[dragging]");
-      }
-    }
-  }
+  removeSortable = (menu) => {
+    menu.querySelector('[data-task="down"]')?.remove();
+    menu.querySelector('[data-task="up"]')?.remove();
+  };
 }
 
 customElements.define('joomla-form-builder', JoomlaFormBuilder);
