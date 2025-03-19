@@ -41,7 +41,7 @@ extract($displayData);
         <ul class="dropdown-menu dropdown-menu-start">
             <li>
                 <button tabindex="-1" role="button" class="dropdown-item" data-task="move">
-                    <span class="icon-plus icon-fw me-1" aria-hidden="true"></span><?php echo Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_MOVE_ADD');?>
+                    <span class="icon-plus icon-fw me-1" aria-hidden="true"></span><?php echo Text::_('JGLOBAL_FIELD_ADD');?>
                 </button>
             </li>
             <li>
@@ -49,15 +49,15 @@ extract($displayData);
                     <span class="icon-<?php echo $builderFieldAttributesArray['required'] ? 'unlock' : 'lock'?> icon-fw me-1" aria-hidden="true"></span>
                     <?php echo $builderFieldAttributesArray['required']
                             ? Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE')
-                            : Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_TRUE');?>
+                            : Text::_('JOPTION_REQUIRED');?>
                 </button>
             </li>
             <li>
                 <button tabindex="-1" role="button" class="dropdown-item" data-task="hide">
                     <span class="icon-eye<?php echo !$builderFieldAttributesArray['hidden'] ? '' : '-slash'?> icon-fw me-1" aria-hidden="true"></span>
                     <?php echo $builderFieldAttributesArray['hidden']
-                            ? Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_SHOW')
-                            : Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_HIDDEN_HIDE');?>
+                            ? Text::_('JSHOW')
+                            : Text::_('JHIDE');?>
                 </button>
             </li>
             <!-- @TODO language string -->
@@ -67,7 +67,7 @@ extract($displayData);
     </div>
     <div class="joomla-formbuilder_item-badges position-absolute bottom-0 start 0">
     <?php if ($builderFieldAttributesArray['required']) : ?>
-        <span class="badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2"><?php echo Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_REQUIRED_LABEL'); ?></span>
+        <span class="badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2"><?php echo Text::_('JOPTION_REQUIRED'); ?></span>
     <?php endif; ?>
     <?php if ($builderFieldAttributesArray['hidden']) : ?>
         <span class="badge badge-hidden text-bg-info fs-5 fw-medium mt-1 me-0 m-2"><?php echo Text::_('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL'); ?></span>
