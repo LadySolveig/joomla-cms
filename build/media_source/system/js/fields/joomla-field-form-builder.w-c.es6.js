@@ -173,10 +173,12 @@ class JoomlaFormBuilder extends HTMLElement {
 
   onjoomla_drop_list_item_up(event) {
     console.log('Debug: onjoomla_drop_list_item_up:', event);
+    this.setFormItemsData(); // @todo throw error if not found or not possible
   }
 
   onjoomla_drop_list_item_down(event) {
     console.log('Debug: onjoomla_drop_list_item_down:', event);
+    this.setFormItemsData(); // @todo throw error if not found or not possible
   }
 
   /**
@@ -201,7 +203,10 @@ class JoomlaFormBuilder extends HTMLElement {
       if (!this.querySelector(`span[slot="${slotName}"]`)) {
         this.insertAdjacentHTML('beforeEnd', `<span slot="${slotName}"></span>`);
       }
+
       this.querySelector(`span[slot="${slotName}"]`).appendChild(item);
+      this.setFormItemsData(); // @todo throw error if not found or not possible
+
       // Change the menu item text for add or remove from form
       btn.innerHTML = (slotName === 'field-form')
         ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_REMOVE')}`
@@ -212,10 +217,11 @@ class JoomlaFormBuilder extends HTMLElement {
       if (!menu) return;
       if (slotName === 'field-form') {
         this.addSortable(menu);
+        this.addAdditionalActionButtons(menu);
         return;
       }
       this.removeSortable(menu);
-
+      this.removeAdditionalActionButtons(menu);
     }
 
     if (task === 'required') {
@@ -240,6 +246,7 @@ class JoomlaFormBuilder extends HTMLElement {
       }
       data.required = !data.required;
       item.dataset.formbuilder = JSON.stringify(data);
+      this.setFormItemsData(); // @todo throw error if not found or not possible
     }
 
     if (task === 'hide') {
@@ -264,6 +271,7 @@ class JoomlaFormBuilder extends HTMLElement {
       }
       data.hidden = !data.hidden;
       item.dataset.formbuilder = JSON.stringify(data);
+      this.setFormItemsData(); // @todo throw error if not found or not possible
     }
 
   }
@@ -275,9 +283,10 @@ class JoomlaFormBuilder extends HTMLElement {
   // __dzDropHandler(event) {
   onjoomla_drop_list_dropped(event) {
 
-    const value = this.getFormItemsData();
+    // const value = this.getFormItemsData();
 
-    this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
+    // this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
+    this.setFormItemsData(); // @todo throw error if not found or not possible
 
     const slotName = event.detail.originEvent.target.querySelector('[slot]')
       ? event.detail.originEvent.target.querySelector('[slot]').getAttribute('slot')
@@ -292,7 +301,13 @@ class JoomlaFormBuilder extends HTMLElement {
         ? `<span class="icon-minus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_REMOVE')}`
         : `<span class="icon-plus icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JGLOBAL_FIELD_ADD')}`;
       // Add or remove sortable functionality
-      (slotName === 'field-form') ? this.addSortable(menu) : this.removeSortable(menu);
+      if (slotName === 'field-form') {
+        this.addSortable(menu);
+        this.addAdditionalActionButtons(menu);
+      } else {
+        this.removeSortable(menu);
+        this.removeAdditionalActionButtons(menu);
+      }
     }
   }
 
@@ -303,12 +318,12 @@ class JoomlaFormBuilder extends HTMLElement {
   addSortable = (menu) => {
     if (!menu.querySelector('[data-task="down"]')) {
       let btnDown = document.createElement('li');
-      btnDown.innerHTML = `<button role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
+      btnDown.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
       menu.firstElementChild.after(btnDown);
     }
     if (menu.querySelector('[data-task="up"]')) return;
     let btnUp = document.createElement('li');
-    btnUp.innerHTML = `<button role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
+    btnUp.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
     menu.firstElementChild.after(btnUp);
   };
 
@@ -322,6 +337,43 @@ class JoomlaFormBuilder extends HTMLElement {
   };
 
   /**
+   * Add additional action buttons to the menu
+   * @param {HTMLElement} menu The menu element
+   */
+  addAdditionalActionButtons = (menu) => {
+    const data = JSON.parse(menu.closest('[data-formbuilder]').dataset.formbuilder);
+    if (!menu.querySelector('[data-task="required"]')) {
+      let btnRequired = document.createElement('li');
+      btnRequired.innerHTML =
+      `<button tabindex="-1" role="button" class="dropdown-item" data-task="required">` +
+        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
+      `</button>`;
+      menu.firstElementChild.after(btnRequired);
+    }
+    if (menu.querySelector('[data-task="hide"]')) return;
+    let btnHide = document.createElement('li');
+    btnHide.innerHTML =
+    `<button tabindex="-1" role="button" class="dropdown-item" data-task="hide">` +
+      `<span class="icon-eye${data.hidden ? '': '-slash'} icon-fw me-1" aria-hidden="true"></span>${data.hidden ? Joomla.Text._('JSHOW') : Joomla.Text._('JHIDE')}` +
+    `</button>`;
+    menu.firstElementChild.after(btnHide);
+  }
+
+  /**
+   * Remove additional action buttons from the menu
+   * @param {HTMLElement} menu The menu element
+   */
+  removeAdditionalActionButtons = (menu) => {
+    menu.querySelector('[data-task="required"]')?.remove();
+    menu.querySelector('[data-task="hide"]')?.remove();
+  }
+
+  setFormItemsData() {
+    const value = this.getFormItemsData();
+    this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
+  }
+
+  /**
    * Returns an array of objects representing the form items.
    * Each object contains the index, the element, and parsed dataset data.
    * @returns {Array<Object>}
@@ -331,9 +383,10 @@ class JoomlaFormBuilder extends HTMLElement {
     if (!items) return [];
     const result = [];
     items?.forEach((item, index) => {
-      result.push({
-        [`field${index}`]: item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {},
-      });
+      result.push(item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {});
+      // result.push({
+      //   [`field${index}`]: item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {},
+      // });
     });
     return result;
   }
