@@ -88,4 +88,10 @@ Text::script('JOPTION_REQUIRED');
         <?php echo LayoutHelper::render('joomla.form.field.formbuilder.available-fields', ['form' => $form]); ?>
     </span>
 </joomla-drop-list>
+<input
+    type="hidden"
+    name="<?php echo $name; ?>"
+    id="<?php echo $id; ?>"
+    value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
+<?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
 </joomla-form-builder>
