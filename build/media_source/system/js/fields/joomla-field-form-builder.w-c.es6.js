@@ -279,7 +279,9 @@ class JoomlaFormBuilder extends HTMLElement {
 
     this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
 
-    const slotName = event.detail.originEvent.target.querySelector('[slot]') ? event.detail.originEvent.target.querySelector('[slot]').getAttribute('slot') : '';
+    const slotName = event.detail.originEvent.target.querySelector('[slot]')
+      ? event.detail.originEvent.target.querySelector('[slot]').getAttribute('slot')
+      : event.detail.originEvent.target.closest('[slot]')?.getAttribute('slot') || '';
 
 
     const menu = event.detail.droppedElement.querySelector('.dropdown-menu');
