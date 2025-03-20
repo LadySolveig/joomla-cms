@@ -17,6 +17,8 @@ use Joomla\CMS\Form\FormField;
 use Joomla\CMS\Language\Text;
 use Joomla\Component\Fields\Administrator\Helper\FieldsHelper;
 use Joomla\Filesystem\Path;
+use Joomla\Registry\Registry;
+use Joomla\Utilities\ArrayHelper;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -155,18 +157,28 @@ class FormbuilderField extends FormField
                     // ->getMVCFactory()->createModel('Contact', 'Site', ['ignore_request' => true]);
         // Form::addFormPath(\JPATH_ROOT . '/components/com_contact/forms/contact');
         // get the id of the current item
+        $id = (int) Factory::getApplication()->getInput()->getInt('id');
         $catid = (int) Factory::getApplication()->getInput()->getInt('catid');
+        $table = Factory::getApplication()->bootComponent('com_contact')->getMVCFactory()->createTable('Contact', 'Administrator');
+        $params = $table->load($id) ? \json_decode($table->params) : [];
+        // $formFields = new Registry(\json_decode($params->formbuilder) ?? []);
+        $formFields = ArrayHelper::fromObject(\json_decode($params->formbuilder));
+        // $formFields = ArrayHelper::flatten($formFields);
+        $params = new Registry($params);
         // load the form
         $formFactory = Factory::getContainer()->get(FormFactoryInterface::class);
         $form = $formFactory->createForm('com_contact.contact', ['control' => 'jformbuilder', 'load_data' => false]);
         $source = \JPATH_ROOT . '/components/com_contact/forms/contact.xml';
         $xpath = null;
         $form->loadFile($source, false, $xpath);
-        FieldsHelper::prepareForm('com_contact.mail', $form, new \stdClass(['catid' => $catid]));        Factory::getApplication()->getLanguage()->load('com_contact', \JPATH_SITE);
+        FieldsHelper::prepareForm('com_contact.mail', $form, new \stdClass(['catid' => $catid]));
+        Factory::getApplication()->getLanguage()->load('com_contact', \JPATH_SITE);
         // $model->setState('contact.id', '1');
         // @todo merge the current item with the global config if possible
-        $params = ComponentHelper::getParams('com_contact');
-        if (!$params->get('show_email_copy', 0)) {
+        $globalParams = ComponentHelper::getParams('com_contact');
+        $params->merge($globalParams);
+        // remove the email copy field if not needed
+        if ((int) $params->get('show_email_copy', 0) === 0) {
             $form->removeField('contact_email_copy');
         }
         foreach ($form->getGroup('') as $field) {
@@ -178,6 +190,7 @@ class FormbuilderField extends FormField
                 'group' => $field->group,
                 'required' => $field->required,
                 'hidden' => $field->hidden,
+                'id' => $field->id,
                 'customfieldId' => ''],
                 \JSON_FORCE_OBJECT
             );
@@ -224,6 +237,7 @@ class FormbuilderField extends FormField
             'dataAttributes' => $this->dataAttributes,
             'parentclass'    => $this->parentclass,
             'form'           => $form,
+            'formFields'     => $formFields,
         ];
 
         return $options;
