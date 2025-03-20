@@ -19,6 +19,7 @@ class JoomlaDropListItem extends HTMLElement {
     shadowRoot.innerHTML = `
 <style>
  :host {
+ --shadow-positioning-color: var(--template-bg-dark-60);
  display: block;
  padding: 0.5rem;
  background-color: var(--border-color);
@@ -36,6 +37,7 @@ class JoomlaDropListItem extends HTMLElement {
     // Add the event listeners
     this.addEventListener("dragstart", this);
     this.addEventListener("dragend", this);
+    this.addEventListener("dragenter", this);
     this.addEventListener("dragover", this);
     this.addEventListener("dragleave", this);
     this.addEventListener('click', this);
@@ -56,12 +58,26 @@ class JoomlaDropListItem extends HTMLElement {
     this.setAttribute("dragging", "");
   }
 
-  ondragend() {
+  ondragend(event) {
     this.removeAttribute("over");
     this.removeAttribute("dragging");
   }
 
-  ondragover() {
+  ondragover(event) {
+    const clientY = event?.detail?.clientY || event?.clientY;
+    const closest = event.target.closest('joomla-drop-list-item');
+    if (!closest || closest.hasAttribute('dragging')) return;
+    const closestBox = closest.getBoundingClientRect();
+    const offset = clientY - (closestBox.top + (closestBox.height / 2));
+    if (offset >= 0 || offset < closest.offset) {
+      closest.style['boxShadow'] = '0 8px var(--drop-list-bg), 0 10px var(--shadow-positioning-color)'; // @todo depending on gap
+      return
+    }
+    closest.style.boxShadow = '';
+    closest.style['boxShadow'] = '0 -8px var(--drop-list-bg), 0 -10px (--shadow-positioning-color)'; // @todo depending on gap
+  }
+
+  ondragenter(event) {
     if (this.hasAttribute("dragging")) {
       this.removeAttribute("over");
     } else {
@@ -69,8 +85,9 @@ class JoomlaDropListItem extends HTMLElement {
     }
   }
 
-  ondragleave() {
+  ondragleave(event) {
     this.removeAttribute("over");
+    event.target.closest('joomla-drop-list-item').style["boxShadow"] = '';
   }
 
   /**

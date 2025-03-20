@@ -15,6 +15,7 @@ class JoomlaDropList extends HTMLElement {
     shadowRoot.innerHTML = `
 <style>
   :host {
+    --drop-list-bg: inherit;
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
@@ -22,11 +23,13 @@ class JoomlaDropList extends HTMLElement {
     height: auto;
     border: 2px dotted var(--atum-btn-info);
     min-height: 300px;
+    background-color: var(--drop-list-bg);
   }
   :host([active]) {
+    --drop-list-bg: var(--template-bg-dark-30);
     border-color: var(--template-bg-dark-60);
     border-width: 3px;
-    background-color: var(--template-bg-dark-30);
+    /* background-color: var(--template-bg-dark-30); */
     color: white;
   }
 </style>
@@ -86,6 +89,10 @@ class JoomlaDropList extends HTMLElement {
         if (curr === this.__draggingElement) {
           return closest;
         }
+
+        // Reset the boxShadow for positioning
+        curr.style["boxShadow"] = '';
+
         const currBox = curr.getBoundingClientRect();
         const offset = clientY - (currBox.top + (currBox.height / 2));
         if (offset >= 0 || offset < closest.offset) {
