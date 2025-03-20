@@ -275,11 +275,12 @@ class JoomlaFormBuilder extends HTMLElement {
   // __dzDropHandler(event) {
   onjoomla_drop_list_dropped(event) {
 
-    console.log('Debug: onjoomla_drop_list_drop:', event.detail.originEvent, event.detail.droppedElement);
+    const value = this.getFormItemsData();
+
+    this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
 
     const slotName = event.detail.originEvent.target.querySelector('[slot]') ? event.detail.originEvent.target.querySelector('[slot]').getAttribute('slot') : '';
 
-    console.log('Debug: slotName:', slotName);
 
     const menu = event.detail.droppedElement.querySelector('.dropdown-menu');
 
@@ -317,6 +318,23 @@ class JoomlaFormBuilder extends HTMLElement {
     menu.querySelector('[data-task="down"]')?.remove();
     menu.querySelector('[data-task="up"]')?.remove();
   };
+
+  /**
+   * Returns an array of objects representing the form items.
+   * Each object contains the index, the element, and parsed dataset data.
+   * @returns {Array<Object>}
+   */
+  getFormItemsData() {
+    const items = this.querySelector('joomla-drop-list.joomla-formbuilder-form-items')?.querySelectorAll('.joomla-formbuilder-item[data-formbuilder]');
+    if (!items) return [];
+    const result = [];
+    items?.forEach((item, index) => {
+      result.push({
+        [`field${index}`]: item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {},
+      });
+    });
+    return result;
+  }
 }
 
 customElements.define('joomla-form-builder', JoomlaFormBuilder);
