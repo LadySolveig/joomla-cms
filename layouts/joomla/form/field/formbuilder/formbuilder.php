@@ -20,7 +20,8 @@ extract($displayData);
 /**
  * Layout variables
  * -----------------
- * @var   Form     $form            The form instance for render the available fields
+ * @var   Form     $form            The form instance for render the available fields.
+ * @var   array    $formFields      The form fields that are already allocated to the form.
  * @var   string   $autocomplete    Autocomplete attribute for the field.
  * @var   boolean  $autofocus       Is autofocus enabled?
  * @var   string   $class           Classes for the input.
@@ -82,10 +83,13 @@ Text::script('JOPTION_REQUIRED');
 ?>
 <joomla-form-builder>
 <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
+    <span slot="field-form">
+        <?php echo LayoutHelper::render('joomla.form.field.formbuilder.form-fields', ['form' => $form, 'formFields' => $formFields]); ?>
+    </span>
 </joomla-drop-list>
 <joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
     <span slot="field-available">
-        <?php echo LayoutHelper::render('joomla.form.field.formbuilder.available-fields', ['form' => $form]); ?>
+        <?php echo LayoutHelper::render('joomla.form.field.formbuilder.available-fields', ['form' => $form, 'formFields' => $formFields]); ?>
     </span>
 </joomla-drop-list>
 <input
