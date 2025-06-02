@@ -8,7 +8,15 @@ joomla-form-builder {
 
   @media (width <= 768px) {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(min-content, 1.5fr) minmax(min-content, .5fr);
+    grid-template-rows: minmax(min-content, auto) minmax(min-content, auto);
+  }
+
+  > * {
+    box-sizing: border-box;
+  }
+
+  .joomla-form-builder-actions {
+    grid-column: 1 / span 2;
   }
 
   .joomla-form-builder_item-menu {
@@ -27,6 +35,7 @@ joomla-form-builder {
     line-height: var(--body-line-height);
     background: var(--form-control-bg);
     border: var(--form-control-border);
+    min-height: 39px;
 
     .control-group {
       padding-inline: 1rem;
@@ -35,11 +44,70 @@ joomla-form-builder {
     }
   }
 
-  span[slot="field-form"] {
+  span[slot="field-form"],
+  span[slot="field-available"] {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    height: 100%;
   }
 
+  joomla-tab {
+    height: 100%;
+
+    joomla-tab-element {
+      padding: .75rem .25vw;
+      height: 100%;
+
+      &[active], &[active] fieldset{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  }
+
+  joomla-drop-list {
+    --drop-list-bg: inherit;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    border: 2px dotted var(--atum-btn-info);
+    min-height: 300px;
+    background-color: var(--drop-list-bg);
+
+    joomla-tab-element[active] {
+      background-color: var(--drop-list-bg);
+    }
+
+    &[active]:not(:has(joomla-tab-element[active])) {
+    --drop-list-bg: var(--template-bg-dark-30);
+    border-color: var(--template-bg-dark-60);
+    border-width: 3px;
+    color: white;
+    }
+
+    &[active] joomla-tab-element[active] {
+      --drop-list-bg: var(--template-bg-dark-30);
+      border-color: var(--template-bg-dark-60);
+      border-width: 3px;
+      color: white;
+    }
+  }
+
+  joomla-drop-list-item {
+    --shadow-positioning-color: var(--template-bg-dark-60);
+    display: block;
+    padding: 0.5rem;
+    background-color: var(--border-color);
+    margin: 0.25rem;
+
+    &[dragging] {
+      background-color: var(----button-and-icon-color);
+      color: var(--template-text-light);
+    }
+  }
 }

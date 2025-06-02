@@ -13,26 +13,6 @@ class JoomlaDropList extends HTMLElement {
 
     const shadowRoot = this.attachShadow({ mode: "open" });
     shadowRoot.innerHTML = `
-<style>
-  :host {
-    --drop-list-bg: inherit;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    border: 2px dotted var(--atum-btn-info);
-    min-height: 300px;
-    background-color: var(--drop-list-bg);
-  }
-  :host([active]) {
-    --drop-list-bg: var(--template-bg-dark-30);
-    border-color: var(--template-bg-dark-60);
-    border-width: 3px;
-    /* background-color: var(--template-bg-dark-30); */
-    color: white;
-  }
-</style>
 <slot></slot>
 `;
 
@@ -54,7 +34,10 @@ class JoomlaDropList extends HTMLElement {
    * @param  {Event} event The event object
    */
   handleEvent(event) {
-    this[`on${event.type}`](event);
+    const handlerName = `on${event.type.replaceAll('-', '_').replaceAll(':', '_').replaceAll('.', '_')}`;
+    if (typeof this[handlerName] === 'function') {
+      this[handlerName](event);
+    }
   }
 
   /**
@@ -112,12 +95,19 @@ class JoomlaDropList extends HTMLElement {
         return;
       }
     }
+
+    let dragContainer = this;
     // Append the dragging element to the container
     if (slotName) {
-      this.querySelector(`span[slot="${slotName}"]`).appendChild(this.__draggingElement);
-    } else {
-      this.appendChild(this.__draggingElement);
+      dragContainer = this.querySelector(`span[slot="${slotName}"]`);
     };
+
+    if (dragContainer.querySelector('joomla-tab-element[active]')) {
+      // If the container has a tab element with active attribute, append to that
+      dragContainer = dragContainer.querySelector('joomla-tab-element[active]');
+    }
+
+    dragContainer.appendChild(this.__draggingElement);
 
     // Emit the drop event
     this.emit('dropped', { originEvent: event , droppedElement: this.__draggingElement});

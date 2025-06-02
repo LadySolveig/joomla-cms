@@ -17,20 +17,6 @@ class JoomlaDropListItem extends HTMLElement {
 
     const shadowRoot = this.attachShadow({ mode: "open" });
     shadowRoot.innerHTML = `
-<style>
- :host {
- --shadow-positioning-color: var(--template-bg-dark-60);
- display: block;
- padding: 0.5rem;
- background-color: var(--border-color);
- margin: 0.25rem;
- }
- :host([dragging]) {
- background-color: var(----button-and-icon-color);
- color: var(--template-text-light);
- }
-</style>
-
 <slot></slot>
 `;
 
@@ -48,7 +34,10 @@ class JoomlaDropListItem extends HTMLElement {
    * @param  {Event} event The event object
    */
   handleEvent(event) {
-    this[`on${event.type}`](event);
+    const handlerName = `on${event.type.replaceAll('-', '_').replaceAll(':', '_').replaceAll('.', '_')}`;
+    if (typeof this[handlerName] === 'function') {
+      this[handlerName](event);
+    }
   }
 
   // Important: we need to understand who's dragging so we can

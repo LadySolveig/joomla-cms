@@ -11,42 +11,6 @@ if (!window.Joomla) {
 const formbuilderTemplate = document.createElement('template');
 
 formbuilderTemplate.innerHTML = `
-<style>
-  :host {
-    display: grid;
-    grid-template-columns: 2fr minmax(200px, 1fr);
-    grid-gap: 10px;
-    padding: 10px;
-    min-height: 300px;
-    width: 100%;
-  }
-  @media (width <= 768px) {
-    :host {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(min-content, 1.5fr) minmax(min-content, .5fr);
-    }
-  }
-  :host > * {
-    box-sizing: border-box;
-  }
-  .joomla-formbuilder-item {
-    position: relative;
-    width: 100%;
-    height: 50px;
-    color: var(--login-label-color);
-    text-align: center;
-    line-height: var(--body-line-height);
-    background: var(--form-control-bg);
-    border: var(--form-control-border);
-  }
-  slot[name="field-form"],
-  slot[name="field-available"] {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    height: auto;
-  }
-</style>
 <slot></slot>`;
 
 /**
@@ -150,6 +114,7 @@ class JoomlaFormBuilder extends HTMLElement {
     this.addEventListener('joomla-drop-list-item:up', this);
     this.addEventListener('joomla-drop-list-item:down', this);
     this.addEventListener('joomla-drop-list:dropped', this);
+    this.addEventListener('joomla.tab.shown', this);
 	}
 
   /**
@@ -161,6 +126,7 @@ class JoomlaFormBuilder extends HTMLElement {
     this.removeEventListener('joomla-drop-list-item:up', this);
     this.removeEventListener('joomla-drop-list-item:down', this);
     this.removeEventListener('joomla-drop-list:drop', this);
+    this.removeEventListener('joomla.tab.shown', this);
 	}
 
   /**
@@ -168,17 +134,53 @@ class JoomlaFormBuilder extends HTMLElement {
    * @param  {Event} event The event object
    */
   handleEvent(event) {
-    this[`on${event.type.replaceAll('-', '_').replaceAll(':', '_')}`](event);
+    const handlerName = `on${event.type.replaceAll('-', '_').replaceAll(':', '_').replaceAll('.', '_')}`;
+    if (typeof this[handlerName] === 'function') {
+      this[handlerName](event);
+    }
   }
 
   onjoomla_drop_list_item_up(event) {
-    console.log('Debug: onjoomla_drop_list_item_up:', event);
     this.setFormItemsData(); // @todo throw error if not found or not possible
   }
 
   onjoomla_drop_list_item_down(event) {
-    console.log('Debug: onjoomla_drop_list_item_down:', event);
     this.setFormItemsData(); // @todo throw error if not found or not possible
+  }
+
+  onjoomla_tab_shown(event) {
+    // If the global tab is active, we need to disable the remove functionality
+    if (!event.target?.tagName === 'BUTTON') {
+      return;
+    }
+
+    if (!event.target.hasAttribute('aria-controls')) {
+      return;
+    }
+
+    if (!event.target.closest('joomla-drop-list').hasAttribute('slotName') ||
+        event.target.closest('joomla-drop-list')?.getAttribute('slotName') !== 'field-form') {
+      return;
+    }
+
+
+    // Remove all edit buttons
+    this.querySelectorAll('[data-task="edit-fieldset"]').forEach((btn) => {
+      btn.remove();
+    });
+
+    if (event.target.getAttribute('aria-controls') === 'jglobal') {
+      this.querySelector('[data-task="remove-fieldset"]')?.setAttribute('disabled', 'disabled');
+    } else {
+      this.querySelector('[data-task="remove-fieldset"]')?.removeAttribute('disabled');
+      // Add a new button element next to the event target with an edit symbol
+      const editButton = document.createElement('button');
+      editButton.className = 'btn btn-secondary btn-sm';
+      editButton.setAttribute('type', 'button');
+      editButton.setAttribute('data-task', 'edit-fieldset');
+      editButton.innerHTML = `<span class="mx-2 icon-edit icon-fw icon-lg" aria-hidden="true"></span><span class="visually-hidden">${Joomla.Text._('COM_FORMBUILDER_BUTTON_EDIT_FIELDSET')}</span>`;
+      event.target.insertAdjacentElement('afterEnd', editButton);
+    }
   }
 
   /**
@@ -187,16 +189,18 @@ class JoomlaFormBuilder extends HTMLElement {
    */
   onclick(event) {
 
+    const target = event.target.tagName === 'SPAN' ? event.target.closest('button, a') : event.target;
+
     // Get the task
-    let task = event.target.getAttribute('data-task');
+    let task = target.getAttribute('data-task');
     if (!task) return;
 
     // Prevent submit
     event.preventDefault();
 
-    // If move, move the element
+    // Move an item between available and form fields
     if (task === 'move') {
-      const btn = event.target;
+      const btn = target;
       const item = btn.closest('joomla-drop-list-item');
       if (!item) return;
       const slotName = item.closest('[slot="field-available"]') ? 'field-form' : 'field-available';
@@ -204,7 +208,13 @@ class JoomlaFormBuilder extends HTMLElement {
         this.insertAdjacentHTML('beforeEnd', `<span slot="${slotName}"></span>`);
       }
 
-      this.querySelector(`span[slot="${slotName}"]`).appendChild(item);
+      const spanSlot = this.querySelector(`span[slot="${slotName}"]`);
+      if (spanSlot.querySelector('joomla-tab-element[active]')) {
+        spanSlot.querySelector('joomla-tab-element[active]').appendChild(item);
+      } else {
+        spanSlot.appendChild(item);
+      }
+
       this.setFormItemsData(); // @todo throw error if not found or not possible
 
       // Change the menu item text for add or remove from form
@@ -224,13 +234,13 @@ class JoomlaFormBuilder extends HTMLElement {
       this.removeAdditionalActionButtons(menu);
     }
 
+    // Set or remove required attribute from the field
     if (task === 'required') {
-      const item = event.target.closest('[data-formbuilder]');
+      const item = target.closest('[data-formbuilder]');
       if (!item) return;
-      console.log('Debug: task required:', item);
       const data = JSON.parse(item.dataset.formbuilder);
       if (!data) return;
-      const btn = event.target;
+      const btn = target;
       if (data.required === true) {
         const badge = item.querySelector('.badge-required');
         if (badge) {
@@ -242,20 +252,20 @@ class JoomlaFormBuilder extends HTMLElement {
         badge.className = 'badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2';
         badge.innerHTML = Joomla.Text._('JOPTION_REQUIRED');
         item.querySelector('.joomla-formbuilder_item-badges').prepend(badge);
-        btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE')}`;
+        btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_BUTTON_REQUIRED_FALSE')}`;
       }
       data.required = !data.required;
       item.dataset.formbuilder = JSON.stringify(data);
       this.setFormItemsData(); // @todo throw error if not found or not possible
     }
 
+    // Show or hide the field
     if (task === 'hide') {
-      const item = event.target.closest('[data-formbuilder]');
+      const item = target.closest('[data-formbuilder]');
       if (!item) return;
-      console.log('Debug: task hide:', item);
       const data = JSON.parse(item.dataset.formbuilder);
       if (!data) return;
-      const btn = event.target;
+      const btn = target;
       if (data.hidden === true) {
         const badge = item.querySelector('.badge-hidden');
         if (badge) {
@@ -265,7 +275,7 @@ class JoomlaFormBuilder extends HTMLElement {
       } else {
         const badge = document.createElement('span');
         badge.className = 'badge badge-hidden text-bg-info fs-5 fw-medium mt-1 me-0 m-2';
-        badge.innerHTML = Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
+        badge.innerHTML = Joomla.Text._('COM_FORMBUILDER_HIDDEN_LABEL');
         item.querySelector('.joomla-formbuilder_item-badges').appendChild(badge);
         btn.innerHTML = `<span class="icon-eye icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JSHOW')}`;
       }
@@ -274,6 +284,130 @@ class JoomlaFormBuilder extends HTMLElement {
       this.setFormItemsData(); // @todo throw error if not found or not possible
     }
 
+    // Add a new fieldset
+    if (task === 'add-fieldset') {
+      const tabParent = this.querySelector('#form-fields-tab');
+      if (!tabParent) {
+        console.error('Debug: task add-fieldset: form-fields-tab not found');
+        return;
+      }
+      const countTabElements = tabParent.querySelectorAll('joomla-tab-element').length;
+      // Add Language String for new Fieldset
+      const tabLabel = `COM_FORMBUILDER_FIELDSET_FORM_FIELDS_${countTabElements + 1}_TITLE`;
+      this.editLanguageString(tabLabel, 'Fieldset ' + (countTabElements + 1)).then((title) => {
+        const tabElement = document.createElement('joomla-tab-element');
+        tabElement.id = `form-fields-${countTabElements + 1}`;
+        tabElement.setAttribute('name', `${title}`);
+        tabElement.setAttribute('role', 'tabpanel');
+        tabParent.appendChild(tabElement);
+      });
+
+    }
+
+    // Edit Fieldset Title
+    if (task === 'edit-fieldset') {
+      const tabParent = this.querySelector('#form-fields-tab');
+      if (!tabParent) {
+        console.error('Debug: task edit-fieldset: form-fields-tab not found');
+        return;
+      }
+      const activeTab = tabParent.querySelector('joomla-tab-element[active]');
+      if (!activeTab) {
+        Joomla.renderMessages({
+          error: [Joomla.Text._('COM_FORMBUILDER_ERROR_EDIT_FIELDSET')]
+        });
+        return;
+      }
+      const tabLabel = `COM_FORMBUILDER_FIELDSET_${activeTab.id.toString().toUpperCase().replaceAll('-', '_')}_TITLE`;
+      this.editLanguageString(tabLabel).then((title) => {
+        if (title === null) return; // User cancelled
+        activeTab.setAttribute('name', `${title}`);
+        const tabBtn =  tabParent.querySelector(`[aria-controls="${activeTab.id}"]`);
+        if (tabBtn) {
+          tabBtn.innerHTML = `${title}`;
+        }
+      });
+    }
+
+    // Remove Fieldset
+    if (task === 'remove-fieldset') {
+      const tabParent = this.querySelector('#form-fields-tab');
+      if (!tabParent) {
+        console.error('Debug: task remove-fieldset: form-fields-tab not found');
+        return;
+      }
+      const activeTab = tabParent.querySelector('joomla-tab-element[active]');
+      if (!activeTab) {
+        Joomla.renderMessages({
+          error: [Joomla.Text._('COM_FORMBUILDER_ERROR_REMOVE_FIELDSET')]
+        });
+        return;
+      }
+      if (activeTab.querySelectorAll('.joomla-formbuilder-item').length > 0) {
+        Joomla.renderMessages({
+          error: [Joomla.Text._('COM_FORMBUILDER_ERROR_REMOVE_FIELDSET_WITH_ITEMS')]
+        });
+        return;
+      }
+      const tabButton = tabParent.querySelector(`[aria-controls="${activeTab.id}"]`);
+      activeTab.removeAttribute('active');
+      tabButton.setAttribute('aria-selected', 'false');
+      // Set the first tab as active
+      const newActiveTab = tabParent.querySelectorAll('joomla-tab-element')[0]
+      newActiveTab.setAttribute('active', 'true');
+      tabParent.querySelector(`[aria-controls="${newActiveTab.id}"]`).setAttribute('aria-selected', 'true');
+      // Remove the tab
+      activeTab.remove();
+      tabButton.remove();
+    }
+
+  }
+
+  editLanguageString(langKey, langString = '') {
+    return new Promise((resolve) => {
+      let newValue = '';
+      if (!langString || typeof langString !== 'string' || langString.trim() === '') {
+        // Prompt for new value
+        newValue = prompt(
+          Joomla.Text._('COM_FORMBUILDER_EDIT_LANGUAGE_STRING_PROMPT'),
+          Joomla.Text._(langString)
+        );
+        if (newValue === null) return resolve(null); // User cancelled
+      }
+      const data = {
+        key: `${langKey}`,
+        override: `${langString || newValue}`,
+        id: `${langKey}`
+      };
+      data[Joomla.getOptions('csrf.token', '')] = 1;
+
+      Joomla.request({
+        url: `index.php?option=com_formbuilder&task=formbuilder.editlang&format=json`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify(data),
+        onSuccess: (resp) => {
+          const response = JSON.parse(resp);
+          if (response.error && response.message) {
+            Joomla.renderMessages({ error: [response.message] });
+          }
+          if (response.messages) {
+            Joomla.renderMessages(response.messages);
+          }
+          if (response.data && response.data.title) {
+            resolve(response.data.title);
+          } else {
+            resolve(langString || newValue);
+          }
+        },
+        onError: () => {
+          Joomla.renderMessages({
+            error: [Joomla.Text._('COM_FORMBUILDER_LANGUAGE_STRING_ERROR_AJAX')]
+          });
+          resolve(null);
+        },
+      });
+    });
   }
 
   /**
@@ -318,12 +452,12 @@ class JoomlaFormBuilder extends HTMLElement {
   addSortable = (menu) => {
     if (!menu.querySelector('[data-task="down"]')) {
       let btnDown = document.createElement('li');
-      btnDown.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN')}</button>`;
+      btnDown.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_BUTTON_DOWN')}</button>`;
       menu.firstElementChild.after(btnDown);
     }
     if (menu.querySelector('[data-task="up"]')) return;
     let btnUp = document.createElement('li');
-    btnUp.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP')}</button>`;
+    btnUp.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORM_BUILDER_BUTTON_UP')}</button>`;
     menu.firstElementChild.after(btnUp);
   };
 
@@ -346,7 +480,7 @@ class JoomlaFormBuilder extends HTMLElement {
       let btnRequired = document.createElement('li');
       btnRequired.innerHTML =
       `<button tabindex="-1" role="button" class="dropdown-item" data-task="required">` +
-        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
+        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_FORMBUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
       `</button>`;
       menu.firstElementChild.after(btnRequired);
     }
@@ -370,7 +504,7 @@ class JoomlaFormBuilder extends HTMLElement {
 
   setFormItemsData() {
     const value = this.getFormItemsData();
-    this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
+    this.querySelector('input[name="jform[formbuilder]"], input[name="jform[params][formbuilder]"], input[name="jform[attribs][formbuilder]"], input[name="jform[formbuilder][formbuilder]"]').value = JSON.stringify(value);
   }
 
   /**
@@ -380,13 +514,15 @@ class JoomlaFormBuilder extends HTMLElement {
    */
   getFormItemsData() {
     const items = this.querySelector('joomla-drop-list.joomla-formbuilder-form-items')?.querySelectorAll('.joomla-formbuilder-item[data-formbuilder]');
-    if (!items) return [];
-    const result = [];
+    if (!items) return {};
+    const result = {};
     items?.forEach((item, index) => {
-      result.push(item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {});
-      // result.push({
-      //   [`field${index}`]: item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {},
-      // });
+      const tabElement = item.closest('joomla-tab-element');
+      const groupKey = tabElement ? tabElement.id : 'form-fields-global';
+      if (!result[groupKey]) {
+        result[groupKey] = [];
+      }
+      result[groupKey].push(item.dataset.formbuilder ? JSON.parse(item.dataset.formbuilder) : {});
     });
     return result;
   }

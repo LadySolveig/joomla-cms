@@ -13,7 +13,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
-use Joomla\CMS\Router\Route;
 
 extract($displayData);
 
@@ -60,6 +59,9 @@ $wa->useScript('webcomponent.field-form-builder');
 $wa->useScript('webcomponent.drop-list');
 $wa->useScript('webcomponent.drop-list-item');
 $wa->useStyle('webcomponent.field-form-builder');
+// @todo needed?
+// $wa->getRegistry()->addExtensionRegistryFile('com_formbuilder');
+// $wa->usePreset('com_formbuilder.formbuilder');
 
 // @todo needed?
 // Populate the media config
@@ -70,10 +72,16 @@ $wa->useStyle('webcomponent.field-form-builder');
 // ];
 // $this->getDocument()->addScriptOptions('com_media', $config);
 
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_REQUIRED_FALSE');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_UP');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_BUTTON_DOWN');
-Text::script('COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_HIDDEN_LABEL');
+Text::script('COM_FORMBUILDER_BUTTON_REQUIRED_FALSE');
+Text::script('COM_FORMBUILDER_BUTTON_UP');
+Text::script('COM_FORMBUILDER_BUTTON_DOWN');
+Text::script('COM_FORMBUILDER_HIDDEN_LABEL');
+Text::script('COM_FORMBUILDER_ERROR_REMOVE_FIELDSET');
+Text::script('COM_FORMBUILDER_ERROR_REMOVE_FIELDSET_WITH_ITEMS');
+Text::script('COM_FORMBUILDER_ERROR_LANGUAGE_STRING_AJAX');
+Text::script('COM_FORMBUILDER_ERROR_EDIT_FIELDSET');
+Text::script('COM_FORMBUILDER_BUTTON_EDIT_FIELDSET');
+Text::script('COM_FORMBUILDER_EDIT_LANGUAGE_STRING_PROMPT');
 Text::script('JGLOBAL_FIELD_ADD');
 Text::script('JGLOBAL_FIELD_REMOVE');
 Text::script('JSHOW');
@@ -82,6 +90,16 @@ Text::script('JOPTION_REQUIRED');
 
 ?>
 <joomla-form-builder>
+<div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
+    <button class="btn btn-success" type="button" data-task="add-fieldset">
+        <span class="icon-add me-2" aria-hidden="true"></span>
+        <?php echo Text::_('COM_FORMBUILDER_ADD_FIELDSET'); ?>
+    </button>
+   <button class="btn btn-danger" type="button" data-task="remove-fieldset">
+        <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
+        <?php echo Text::_('COM_FORMBUILDER_REMOVE_FIELDSET'); ?>
+    </button>
+</div>
 <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
     <span slot="field-form">
         <?php echo LayoutHelper::render('joomla.form.field.formbuilder.form-fields', ['form' => $form, 'formFields' => $formFields]); ?>
