@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "com_formbuilder",
+  "version": "6.0.0",
+  "description": "Joomla CMS",
+  "license": "GPL-2.0-or-later",
+  "assets": [
+    {
+      "name": "webcomponent.field-form-builder",
+      "type": "script",
+      "uri": "com_formbuilder/js/fields/joomla-field-form-builder.min.js",
+      "attributes": {
+        "type": "module"
+      },
+      "dependencies": [
+        "wcpolyfill",
+        "core",
+        "webcomponent.drop-list-item"
+      ]
+    },
+    {
+      "name": "webcomponent.field-form-builder",
+      "type": "style",
+      "uri": "com_formbuilder/fields/joomla-field-form-builder.min.css"
+    },
+    {
+      "name": "com_formbuilder.formbuilder",
+      "type": "preset",
+      "dependencies": [
+        "webcomponent.field-form-builder#script",
+        "webcomponent.field-form-builder#style"
+      ]
+    }
+  ]
+}

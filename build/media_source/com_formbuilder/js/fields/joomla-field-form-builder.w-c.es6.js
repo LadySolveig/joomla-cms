@@ -178,7 +178,7 @@ class JoomlaFormBuilder extends HTMLElement {
       editButton.className = 'btn btn-secondary btn-sm';
       editButton.setAttribute('type', 'button');
       editButton.setAttribute('data-task', 'edit-fieldset');
-      editButton.innerHTML = `<span class="mx-2 icon-edit icon-fw icon-lg" aria-hidden="true"></span><span class="visually-hidden">${Joomla.Text._('COM_FORMBUILDER_BUTTON_EDIT_FIELDSET')}</span>`;
+      editButton.innerHTML = `<span class="mx-2 icon-edit icon-fw icon-lg" aria-hidden="true"></span><span class="visually-hidden">${Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_EDIT_FIELDSET')}</span>`;
       event.target.insertAdjacentElement('afterEnd', editButton);
     }
   }
@@ -252,7 +252,7 @@ class JoomlaFormBuilder extends HTMLElement {
         badge.className = 'badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2';
         badge.innerHTML = Joomla.Text._('JOPTION_REQUIRED');
         item.querySelector('.joomla-formbuilder_item-badges').prepend(badge);
-        btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_BUTTON_REQUIRED_FALSE')}`;
+        btn.innerHTML = `<span class="icon-unlock icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE')}`;
       }
       data.required = !data.required;
       item.dataset.formbuilder = JSON.stringify(data);
@@ -275,7 +275,7 @@ class JoomlaFormBuilder extends HTMLElement {
       } else {
         const badge = document.createElement('span');
         badge.className = 'badge badge-hidden text-bg-info fs-5 fw-medium mt-1 me-0 m-2';
-        badge.innerHTML = Joomla.Text._('COM_FORMBUILDER_HIDDEN_LABEL');
+        badge.innerHTML = Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_HIDDEN_LABEL');
         item.querySelector('.joomla-formbuilder_item-badges').appendChild(badge);
         btn.innerHTML = `<span class="icon-eye icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('JSHOW')}`;
       }
@@ -452,12 +452,12 @@ class JoomlaFormBuilder extends HTMLElement {
   addSortable = (menu) => {
     if (!menu.querySelector('[data-task="down"]')) {
       let btnDown = document.createElement('li');
-      btnDown.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_BUTTON_DOWN')}</button>`;
+      btnDown.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="down"><span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_DOWN')}</button>`;
       menu.firstElementChild.after(btnDown);
     }
     if (menu.querySelector('[data-task="up"]')) return;
     let btnUp = document.createElement('li');
-    btnUp.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORM_BUILDER_BUTTON_UP')}</button>`;
+    btnUp.innerHTML = `<button tabindex="-1" role="button" class="dropdown-item" data-task="up"><span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>${Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_UP')}</button>`;
     menu.firstElementChild.after(btnUp);
   };
 
@@ -480,7 +480,7 @@ class JoomlaFormBuilder extends HTMLElement {
       let btnRequired = document.createElement('li');
       btnRequired.innerHTML =
       `<button tabindex="-1" role="button" class="dropdown-item" data-task="required">` +
-        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_FORMBUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
+        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
       `</button>`;
       menu.firstElementChild.after(btnRequired);
     }

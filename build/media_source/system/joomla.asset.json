@@ -363,24 +363,6 @@
       ]
     },
     {
-      "name": "webcomponent.field-form-builder",
-      "type": "script",
-      "uri": "system/fields/joomla-field-form-builder.min.js",
-      "attributes": {
-        "type": "module"
-      },
-      "dependencies": [
-        "wcpolyfill",
-        "core",
-        "webcomponent.drop-list-item"
-      ]
-    },
-    {
-      "name": "webcomponent.field-form-builder",
-      "type": "style",
-      "uri": "system/fields/joomla-field-form-builder.min.css"
-    },
-    {
       "name": "webcomponent.field-media",
       "type": "style",
       "uri": "system/fields/joomla-field-media.min.css"
