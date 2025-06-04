@@ -173,6 +173,14 @@
 		/>
 
 		<menuitem
+			title="MOD_MENU_MANAGE_FORMBUILDER"
+			type="component"
+			element="com_formbuilder"
+			link="index.php?option=com_formbuilder&amp;view=forms"
+			permission="core.manage;com_formbuilder"
+		/>
+
+		<menuitem
 			title="MOD_MENU_MANAGE_SCHEDULED_TASKS"
 			type="component"
 			element="com_scheduler"
