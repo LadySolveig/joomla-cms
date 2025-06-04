@@ -19,6 +19,7 @@
 		<filename>config.xml</filename>
 		<filename>formbuilder.xml</filename>
 		<folder>forms</folder>
+		<folder>layouts</folder>
 		<folder>services</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
