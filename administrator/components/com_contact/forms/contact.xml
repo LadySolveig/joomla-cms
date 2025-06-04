@@ -719,9 +719,15 @@
 				<field
 					name="formbuilder"
 					type="Formbuilder"
-					label="COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_LABEL"
-					description="COM_CONTACT_FIELD_EMAIL_FORM_BUILDER_DESC"
+					label="COM_FORMBUILDER_FIELD_FORMBUILDER_LABEL"
+					description="COM_FORMBUILDER_FIELD_FORMBUILDER_DESC"
 					parentclass="stack"
+					formPath="components/com_contact/forms"
+					component="com_contact"
+					formName="contact"
+					formPrepare="mail"
+					client="site"
+					addfieldprefix="Joomla\Component\Formbuilder\Administrator\Field"
 					showon="show_email_form!:0"
 				/>
 
