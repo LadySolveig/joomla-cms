@@ -8,7 +8,7 @@
     {
       "name": "webcomponent.field-form-builder",
       "type": "script",
-      "uri": "com_formbuilder/js/fields/joomla-field-form-builder.min.js",
+      "uri": "media/com_formbuilder/js/fields/joomla-field-form-builder.min.js",
       "attributes": {
         "type": "module"
       },
