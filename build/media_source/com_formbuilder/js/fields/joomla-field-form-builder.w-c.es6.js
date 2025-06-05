@@ -382,7 +382,7 @@ class JoomlaFormBuilder extends HTMLElement {
       data[Joomla.getOptions('csrf.token', '')] = 1;
 
       Joomla.request({
-        url: `index.php?option=com_formbuilder&task=formbuilder.editlang&format=json`,
+        url: `index.php?option=com_formbuilder&task=form.editlang&format=json`,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify(data),
