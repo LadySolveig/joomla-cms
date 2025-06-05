@@ -89,7 +89,7 @@ class FormbuilderField extends FormField
      * @var    string
      * @since  __DEPLOY_VERSION__
      */
-    protected $formPrepare;
+    protected $scope;
 
     /**
      * The application context for which the form is used.
@@ -171,7 +171,7 @@ class FormbuilderField extends FormField
                 return $this->formPath;
             case 'formName':
             case 'component':
-            case 'formPrepare':
+            case 'scope':
             case 'buttons':
             case 'client':
                 return $this->$name;
@@ -234,7 +234,7 @@ class FormbuilderField extends FormField
             case 'formPath':
             case 'formName':
             case 'component':
-            case 'formPrepare':
+            case 'scope':
             case 'client':
                $this->$name = (string) $value;
 
@@ -278,7 +278,7 @@ class FormbuilderField extends FormField
         }
 
         $attributes = [
-            'formPath', 'formName', 'component', 'formPrepare', 'client'
+            'formPath', 'formName', 'component', 'scope', 'client'
         ];
 
         foreach ($attributes as $attributeName) {
@@ -319,7 +319,7 @@ class FormbuilderField extends FormField
         $xpath = null;
         $form->loadFile($source, false, $xpath);
         // Load the custom fields into the form
-        FieldsHelper::prepareForm($this->component . '.' . $this->formPrepare, $form, (object) ['catid' => $catId]);
+        FieldsHelper::prepareForm($this->component . '.' . $this->scope, $form, (object) ['catid' => $catId]);
         // Load the language file for the component
         Factory::getApplication()->getLanguage()->load($this->component, \JPATH_SITE);
         // @todo merge the current item with the global config if possible
@@ -333,7 +333,7 @@ class FormbuilderField extends FormField
         // }
 
         // Get the custom fields for the context and catid
-        $customFields = FieldsHelper::getFields($this->component . '.' . $this->formPrepare, ['id' => 0, 'catid' => $catId], false, null, false);
+        $customFields = FieldsHelper::getFields($this->component . '.' . $this->scope, ['id' => 0, 'catid' => $catId], false, null, false);
 
         // Check if we have to add custom fields with different context
         // $addCustomFields = []; // @todo performance improvement
@@ -533,7 +533,7 @@ class FormbuilderField extends FormField
 
         $modelFields = Factory::getApplication()->bootComponent('com_fields')
             ->getMVCFactory()->createModel('Groups', 'Administrator', ['ignore_request' => true]);
-        $modelFields->setState('filter.context', $this->component . '.' . $this->formPrepare);
+        $modelFields->setState('filter.context', $this->component . '.' . $this->scope);
 
         $groups = $modelFields->getItems();
         $group = new \stdClass;
@@ -554,7 +554,7 @@ class FormbuilderField extends FormField
         $description = $group->description ?? '';
 
         if (!$label) {
-            $key = strtoupper($this->component . '_FIELDS_' . $this->formPrepare . '_LABEL');
+            $key = strtoupper($this->component . '_FIELDS_' . $this->scope . '_LABEL');
 
             if (!$this->app->getLanguage()->hasKey($key)) {
                 $key = 'JGLOBAL_FIELDS';
@@ -564,7 +564,7 @@ class FormbuilderField extends FormField
         }
 
         if (!$description) {
-            $key = strtoupper($this->component . '_FIELDS_' . $this->formPrepare . '_DESC');
+            $key = strtoupper($this->component . '_FIELDS_' . $this->scope . '_DESC');
 
             if ($this->app->getLanguage()->hasKey($key)) {
                 $description = $key;
