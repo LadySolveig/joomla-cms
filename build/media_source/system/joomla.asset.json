@@ -313,6 +313,18 @@
       }
     },
     {
+      "name": "webcomponent.ajax-form",
+      "type": "script",
+      "uri": "system/joomla-ajax-form.min.js",
+      "attributes": {
+        "type": "module"
+      },
+      "dependencies": [
+        "wcpolyfill",
+        "core"
+      ]
+    },
+    {
       "name": "webcomponent.drop-list",
       "type": "script",
       "uri": "system/joomla-drop-list.min.js",
