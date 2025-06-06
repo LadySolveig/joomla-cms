@@ -419,7 +419,6 @@ class JoomlaFormBuilder extends HTMLElement {
 
     // const value = this.getFormItemsData();
 
-    // this.querySelector('input[name="jform[params][formbuilder]"]').value = JSON.stringify(value);
     this.setFormItemsData(); // @todo throw error if not found or not possible
 
     const slotName = event.detail.originEvent.target.querySelector('[slot]')
@@ -504,7 +503,7 @@ class JoomlaFormBuilder extends HTMLElement {
 
   setFormItemsData() {
     const value = this.getFormItemsData();
-    this.querySelector('input[name="jform[form_settings]"], input[name="jform[params][form_settings]"], input[name="jform[attribs][form_settings]"], input[name="jform[formbuilder][form_settings]"]').value = JSON.stringify(value);
+    this.querySelector('input[data-update="formbuilder"]').value = JSON.stringify(value);
   }
 
   /**

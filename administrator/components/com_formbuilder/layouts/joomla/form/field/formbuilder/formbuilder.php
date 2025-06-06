@@ -103,5 +103,6 @@ Text::script('JOPTION_REQUIRED');
     name="<?php echo $name; ?>"
     id="<?php echo $id; ?>"
     value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
+    data-update="form_settings"
 <?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
 </joomla-form-builder>
