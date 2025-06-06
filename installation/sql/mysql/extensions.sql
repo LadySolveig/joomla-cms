@@ -1190,3 +1190,37 @@ INSERT INTO `#__guidedtour_steps` (`id`, `tour_id`, `title`, `published`, `descr
 (115, 12, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_NOTIFICATIONS_TITLE', 1, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_NOTIFICATIONS_DESCRIPTION', 115, 'left', '.quickicons-for-update_quickicon .card', 0, 1, '', CURRENT_TIMESTAMP(), 42, CURRENT_TIMESTAMP(), 42, '*'),
 (116, 12, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_TOPBAR_TITLE', 1, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_TOPBAR_DESCRIPTION', 116, 'bottom', '#header', 0, 1, '', CURRENT_TIMESTAMP(), 42, CURRENT_TIMESTAMP(), 42, '*'),
 (117, 12, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_FINALWORDS_TITLE', 1, 'COM_GUIDEDTOURS_TOUR_WELCOMETOJOOMLA_STEP_FINALWORDS_DESCRIPTION', 117, 'right', '#sidebarmenu nav > ul:first-of-type > li:last-child', 0, 1, '', CURRENT_TIMESTAMP(), 42, CURRENT_TIMESTAMP(), 42, '*');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `#__formbuilder_forms`
+--
+
+CREATE TABLE IF NOT EXISTS `#__formbuilder_forms` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `asset_id` int unsigned NOT NULL DEFAULT 0,
+  `context` varchar(255) NOT NULL DEFAULT '',
+  `client` varchar(15) NOT NULL DEFAULT '',
+  `catid` int unsigned NOT NULL DEFAULT 0,
+  `form_settings` text,
+  `note` varchar(255) NOT NULL DEFAULT '',
+  `state` tinyint NOT NULL DEFAULT 0,
+  `checked_out` int unsigned,
+  `checked_out_time` datetime,
+  `params` text NOT NULL,
+  `language` char(7) NOT NULL DEFAULT '',
+  `created_time` datetime NOT NULL,
+  `created_user_id` int unsigned NOT NULL DEFAULT 0,
+  `modified_time` datetime NOT NULL,
+  `modified_by` int unsigned NOT NULL DEFAULT 0,
+  `access` int NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `idx_checkout` (`checked_out`),
+  KEY `idx_state` (`state`),
+  KEY `idx_catid` (`catid`),
+  KEY `idx_created_user_id` (`created_user_id`),
+  KEY `idx_access` (`access`),
+  KEY `idx_context` (`context`(191)),
+  KEY `idx_language` (`language`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;

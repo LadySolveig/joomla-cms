@@ -117,6 +117,7 @@ INSERT INTO `#__assets` (`id`, `parent_id`, `lft`, `rgt`, `level`, `name`, `titl
 (97, 90, 166, 167, 2, 'com_scheduler.task.1', 'Rotate Logs', '{}'),
 (98, 90, 168, 169, 2, 'com_scheduler.task.2', 'Session GC', '{}'),
 (99, 90, 170, 171, 2, 'com_scheduler.task.3', 'Update Notification', '{}');
+(100, 1, 183, 184, 1, 'com_formbuilder', 'com_formbuilder', '{}');
 
 -- --------------------------------------------------------
 
