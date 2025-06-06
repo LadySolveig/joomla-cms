@@ -21,6 +21,7 @@ use Joomla\CMS\Extension\MVCComponent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Fields\FieldsFormServiceInterface;
 use Joomla\CMS\Fields\FieldsServiceTrait;
+use Joomla\CMS\Form\Builder\FormbuilderServiceInterface;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\HTML\HTMLRegistryAwareTrait;
 use Joomla\CMS\Language\Text;
@@ -46,6 +47,7 @@ class ContactComponent extends MVCComponent implements
     BootableExtensionInterface,
     CategoryServiceInterface,
     FieldsFormServiceInterface,
+    FormbuilderServiceInterface,
     SchemaorgServiceInterface,
     AssociationServiceInterface,
     RouterServiceInterface,
@@ -172,6 +174,31 @@ class ContactComponent extends MVCComponent implements
 
         $contexts = [
             'com_contact.contact' => Text::_('COM_CONTACT'),
+        ];
+
+        return $contexts;
+    }
+
+    /**
+     * Return valid contexts for formbuilder
+     *
+     * @return  array
+     *
+     * @since  __DEPLOY_VERSION__
+     */
+    public function getFormbuilderContexts(): array
+    {
+        Factory::getApplication()->getLanguage()->load('com_contact', JPATH_ADMINISTRATOR);
+        $contexts = [
+            'administrator' => [
+                'com_contact.contact'    => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_CONTACT'),
+                'com_contact.mail'       => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_MAIL'),
+                'com_contact.categories' => Text::_('JCATEGORY'),
+            ],
+            'site' => [
+                'com_contact.contact'    => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_MAIL'),
+                'com_contact.form'       => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_CONTACT'),
+            ]
         ];
 
         return $contexts;
