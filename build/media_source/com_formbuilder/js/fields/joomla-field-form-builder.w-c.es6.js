@@ -504,7 +504,7 @@ class JoomlaFormBuilder extends HTMLElement {
 
   setFormItemsData() {
     const value = this.getFormItemsData();
-    this.querySelector('input[name="jform[formbuilder]"], input[name="jform[params][formbuilder]"], input[name="jform[attribs][formbuilder]"], input[name="jform[formbuilder][formbuilder]"]').value = JSON.stringify(value);
+    this.querySelector('input[name="jform[form_settings]"], input[name="jform[params][form_settings]"], input[name="jform[attribs][form_settings]"], input[name="jform[formbuilder][form_settings]"]').value = JSON.stringify(value);
   }
 
   /**
