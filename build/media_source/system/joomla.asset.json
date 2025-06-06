@@ -317,11 +317,13 @@
       "type": "script",
       "uri": "system/joomla-ajax-form.min.js",
       "attributes": {
-        "type": "module"
+        "type": "module",
+        "defer": true
       },
       "dependencies": [
         "wcpolyfill",
-        "core"
+        "core",
+        "editor-api"
       ]
     },
     {
