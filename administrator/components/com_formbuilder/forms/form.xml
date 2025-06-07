@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form addfieldprefix="Joomla\Component\Formbuilder\Administrator\Field">
+	<config>
+		<inlinehelp button="show"/>
+	</config>
+	<fieldset>
+		<field
+			name="id"
+			type="text"
+			label="JGLOBAL_FIELD_ID_LABEL"
+			class="readonly"
+			readonly="true"
+			default="0"
+		/>
+
+		<field
+			name="asset_id"
+			type="hidden"
+			filter="unset"
+		/>
+
+		<field
+			name="context"
+			type="ComponentsFormbuilder"
+			label="COM_FORMBUILDER_FIELD_CONTEXT_LABEL"
+			description="COM_FORMBUILDER_FIELD_CONTEXT_DESC"
+			required="true"
+			addfieldprefix="Joomla\Component\Formbuilder\Administrator\Field"
+			class="js-select-submit-on-change"
+			parentclass="stack span-2-inline"
+			validate="options"
+			header="COM_FORMBUILDER_FIELD_CONTEXT_HEADER_SELECT_EXTENSION"
+		/>
+
+		<field
+			name="catid"
+			type="category"
+			label="JCATEGORY"
+			class="js-select-submit-on-change"
+			parentclass="stack span-2-inline"
+			disabled="true"
+			addfieldprefix="Joomla\Component\Categories\Administrator\Field"
+			>
+			<option value="">JOPTION_SELECT_CATEGORY</option>
+		</field>
+
+		<field
+			name="client"
+			type="list"
+			label="COM_FORMBUILDER_FIELD_CLIENT_LABEL"
+			description="COM_FORMBUILDER_FIELD_CLIENT_DESC"
+			class="js-select-submit-on-change"
+			parentclass="stack span-2-inline"
+			default="site"
+			validate="options"
+			>
+			<option value="">COM_FORMBUILDER_FIELD_CLIENT_OPTION_SELECT</option>
+			<option value="site">COM_FORMBUILDER_FIELD_CLIENT_OPTION_SITE</option>
+			<option value="administrator">COM_FORMBUILDER_FIELD_CLIENT_OPTION_ADMINISTRATOR</option>
+		</field>
+
+		<field
+			name="form_settings"
+			type="Formbuilder"
+			label="COM_FORMBUILDER_FIELD_FORMBUILDER_LABEL"
+			description="COM_FORMBUILDER_FIELD_FORMBUILDER_DESC"
+			parentclass="stack"
+		/>
+
+		<field
+			name="state"
+			type="list"
+			label="JSTATUS"
+			class="form-select-color-state"
+			default="1"
+			validate="options"
+			>
+			<option value="1">JPUBLISHED</option>
+			<option value="0">JUNPUBLISHED</option>
+			<option value="2">JARCHIVED</option>
+			<option value="-2">JTRASHED</option>
+		</field>
+
+		<field
+			name="checked_out"
+			type="hidden"
+			filter="unset"
+		/>
+
+		<field
+			name="checked_out_time"
+			type="hidden"
+			filter="unset"
+		/>
+
+		<field
+			name="created_user_id"
+			type="user"
+			label="JGLOBAL_FIELD_CREATED_BY_LABEL"
+			validate="UserId"
+		/>
+
+		<field
+			name="created_time"
+			type="calendar"
+			label="JGLOBAL_CREATED_DATE"
+			translateformat="true"
+			showtime="true"
+			filter="user_utc"
+		/>
+
+		<field
+			name="modified_by"
+			type="user"
+			label="JGLOBAL_FIELD_MODIFIED_BY_LABEL"
+			class="readonly"
+			readonly="true"
+			filter="unset"
+			validate="UserId"
+		/>
+
+		<field
+			name="modified_time"
+			type="calendar"
+			label="JGLOBAL_FIELD_MODIFIED_LABEL"
+			class="readonly"
+			translateformat="true"
+			showtime="true"
+			readonly="true"
+			filter="user_utc"
+		/>
+
+		<field
+			name="language"
+			type="contentlanguage"
+			label="JFIELD_LANGUAGE_LABEL"
+			>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
+			name="note"
+			type="text"
+			label="COM_FORMBUILDER_FIELD_NOTE_LABEL"
+			class="col-md-12"
+		/>
+
+		<field
+			name="access"
+			type="accesslevel"
+			label="JFIELD_ACCESS_LABEL"
+			filter="UINT"
+			validate="options"
+		/>
+
+		<field
+			name="rules"
+			type="rules"
+			label="JCONFIG_PERMISSIONS_LABEL"
+			validate="rules"
+			filter="rules"
+			component="com_formbuilder"
+			section="form"
+		/>
+	</fieldset>
+</form>
