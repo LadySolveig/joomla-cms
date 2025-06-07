@@ -55,7 +55,6 @@ extract($displayData);
 
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
-// @todo needed?
 $wa->getRegistry()->addExtensionRegistryFile('com_formbuilder');
 $wa->useScript('webcomponent.drop-list')
     ->useScript('webcomponent.drop-list-item')
@@ -77,32 +76,36 @@ Text::script('JHIDE');
 Text::script('JOPTION_REQUIRED');
 
 ?>
-<joomla-form-builder>
-<div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
-    <button class="btn btn-success" type="button" data-task="add-fieldset">
-        <span class="icon-add me-2" aria-hidden="true"></span>
-        <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
-    </button>
-   <button class="btn btn-danger" type="button" data-task="remove-fieldset">
-        <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
-        <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
-    </button>
-</div>
-<joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
-    <span slot="field-form">
-        <?php echo LayoutHelper::render('joomla.form.field.formbuilder.form-fields', ['form' => $form, 'formFields' => $formFields], JPATH_ROOT . '/administrator/components/com_formbuilder/layouts'); ?>
-    </span>
-</joomla-drop-list>
-<joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
-    <span slot="field-available">
-        <?php echo LayoutHelper::render('joomla.form.field.formbuilder.available-fields', ['form' => $form, 'formFields' => $formFields], JPATH_ROOT . '/administrator/components/com_formbuilder/layouts'); ?>
-    </span>
-</joomla-drop-list>
-<input
-    type="hidden"
-    name="<?php echo $name; ?>"
-    id="<?php echo $id; ?>"
-    value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
-    data-update="formbuilder"
-<?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
-</joomla-form-builder>
+<?php if ($emptyState) : ?>
+    <?php echo $this->sublayout('emptystate', $displayData); ?>
+<?php else : ?>
+    <joomla-form-builder>
+    <div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
+        <button class="btn btn-success" type="button" data-task="add-fieldset">
+            <span class="icon-add me-2" aria-hidden="true"></span>
+            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
+        </button>
+    <button class="btn btn-danger" type="button" data-task="remove-fieldset">
+            <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
+            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
+        </button>
+    </div>
+    <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
+        <span slot="field-form">
+            <?php echo $this->sublayout('form-fields', ['form' => $form, 'formFields' => $formFields]); ?>
+        </span>
+    </joomla-drop-list>
+    <joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
+        <span slot="field-available">
+            <?php echo $this->sublayout('available-fields', ['form' => $form, 'formFields' => $formFields]); ?>
+        </span>
+    </joomla-drop-list>
+    <input
+        type="hidden"
+        name="<?php echo $name; ?>"
+        id="<?php echo $id; ?>"
+        value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
+        data-update="formbuilder"
+    <?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
+    </joomla-form-builder>
+<?php endif; ?>

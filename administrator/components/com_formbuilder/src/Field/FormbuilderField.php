@@ -59,7 +59,7 @@ class FormbuilderField extends FormField
      * @var    string
      * @since  __DEPLOY_VERSION__
      */
-    protected $layout = 'joomla.form.field.formbuilder.formbuilder';
+    protected $layout = 'joomla.form.field.formbuilder';
 
     /**
      * Form path to load the form XML file.
@@ -301,6 +301,49 @@ class FormbuilderField extends FormField
     {
         $this->app->getLanguage()->load('com_formbuilder', \JPATH_ADMINISTRATOR);
 
+        // Define some options
+        $label       = !empty($this->element['label']) ? (string) $this->element['label'] : null;
+        $label       = $label && $this->translateLabel ? Text::_($label) : $label;
+        $description = !empty($this->description) ? $this->description : null;
+        $description = !empty($description) && $this->translateDescription ? Text::_($description) : $description;
+        $alt         = \preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname);
+        $options     = [
+            // 'autocomplete'   => $this->autocomplete,
+            // 'autofocus'      => $this->autofocus,
+            'class'          => $this->class,
+            'description'    => $description,
+            'disabled'       => $this->disabled,
+            'field'          => $this,
+            'group'          => $this->group,
+            'hidden'         => $this->hidden,
+            'hint'           => $this->translateHint ? Text::alt($this->hint, $alt) : $this->hint,
+            'id'             => $this->id,
+            'label'          => $label,
+            'labelclass'     => $this->labelclass,
+            'name'           => $this->name,
+            'required'       => (bool) $this->required,
+            'validationtext' => $this->validationtext,
+            'onchange'       => $this->onchange,
+            'value'          => $this->value,
+            'dataAttribute'  => $this->renderDataAttributes(),
+            'parentclass'    => $this->parentclass,
+            'form'           => null,
+            'formFields'     => [],
+            'emptyState'    => true, // @todo
+        ];
+
+        // Check if we have a client context and a component
+        if (!$this->client || !$this->component) {
+            return $options;
+        }
+
+        $clientInfo = ApplicationHelper::getClientInfo($this->client, true);
+
+        if (!$clientInfo) {
+            $this->app->enqueueMessage(Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ERROR_CLIENT_NOT_FOUND'), 'error');
+            return $options;
+        }
+
         Form::addFormPath(\JPATH_ROOT . '/' . $this->formPath);
 
         $params = (object) []; // @todo get the global params from the component
@@ -438,43 +481,22 @@ class FormbuilderField extends FormField
             }
         }
 
-        $label       = !empty($this->element['label']) ? (string) $this->element['label'] : null;
-        $label       = $label && $this->translateLabel ? Text::_($label) : $label;
-        $description = !empty($this->description) ? $this->description : null;
-        $description = !empty($description) && $this->translateDescription ? Text::_($description) : $description;
-        $alt         = \preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname);
-        $options     = [
+        // Set the specific option for the formbuilder field
+        $options = array_merge($options, [
             // 'autocomplete'   => $this->autocomplete,
             // 'autofocus'      => $this->autofocus,
-            'class'          => $this->class,
-            'description'    => $description,
-            'disabled'       => $this->disabled,
-            'field'          => $this,
-            'group'          => $this->group,
-            'hidden'         => $this->hidden,
-            'hint'           => $this->translateHint ? Text::alt($this->hint, $alt) : $this->hint,
-            'id'             => $this->id,
-            'label'          => $label,
-            'labelclass'     => $this->labelclass,
             // 'multiple'       => $this->multiple,
-            'name'           => $this->name,
-            'onchange'       => $this->onchange,
-            // 'onclick'        => $this->onclick,
             // 'pattern'        => $this->pattern,
-            'validationtext' => $this->validationtext,
             // 'readonly'       => true,
             // 'repeat'         => $this->repeat,
-            'required'       => (bool) $this->required,
             // 'size'           => $this->size,
             // 'spellcheck'     => $this->spellcheck,
             // 'validate'       => $this->validate,
-            'value'          => $this->value,
-            'dataAttribute'  => $this->renderDataAttributes(),
             // 'dataAttributes' => $this->dataAttributes,
-            'parentclass'    => $this->parentclass,
+            'emptyState'    => false,
             'form'           => $form,
             'formFields'     => $formFields,
-        ];
+        ]);
 
         return $options;
     }
