@@ -323,7 +323,8 @@
       "dependencies": [
         "wcpolyfill",
         "core",
-        "editor-api"
+        "editor-api",
+        "webcomponent.core-loader"
       ]
     },
     {
