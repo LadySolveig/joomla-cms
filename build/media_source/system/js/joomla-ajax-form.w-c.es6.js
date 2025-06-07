@@ -45,8 +45,6 @@ class JoomlaAjaxForm extends HTMLElement {
         this.preventDefault = this.hasAttribute('prevent-default');
         let exludeTask = this.getAttribute('excludeTask');
         this.excludeTasks = exludeTask ? exludeTask.split(',').map(exludeTask => exludeTask.trim()) : null;
-        this.msgSubmitting = this.getAttribute('msg-submitting') ?? 'Submitting...';
-        this.msgSuccess = this.getAttribute('msg-success') ?? 'Success!';
         this.msgError = this.getAttribute('msg-error') ?? 'Something went wrong. Please try again.';
         let target = this.getAttribute('target');
         this.targets = target ? target.split(',').map(target => target.trim()) : null;
@@ -100,11 +98,10 @@ class JoomlaAjaxForm extends HTMLElement {
       if (!this.emit('submit', this.getData())) return;
 
       try {
+        // Show loader
           if (document.body.querySelectorAll('joomla-core-loader').length === 0) {
             document.body.appendChild(document.createElement('joomla-core-loader'));
           }
-          // Show status message
-          this.showStatus(this.msgSubmitting);
 
           // If not preventing default behavior, end early
           if (!this.preventDefault) return;
@@ -149,8 +146,6 @@ class JoomlaAjaxForm extends HTMLElement {
             elem.remove();
           });
 
-          // Show success URL
-          this.showStatus(this.msgSuccess);
 
           // Reinitalize the form
           this.form = this.querySelector('form');
