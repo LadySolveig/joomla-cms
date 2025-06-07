@@ -192,7 +192,6 @@ class ContactComponent extends MVCComponent implements
         $contexts = [
             'administrator' => [
                 'com_contact.contact'    => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_CONTACT'),
-                'com_contact.mail'       => Text::_('COM_CONTACT_FORMBUILDER_CONTEXT_MAIL'),
                 'com_contact.categories' => Text::_('JCATEGORY'),
             ],
             'site' => [
@@ -202,5 +201,38 @@ class ContactComponent extends MVCComponent implements
         ];
 
         return $contexts;
+    }
+
+    /**
+     * Returns a valid section for the given section and client context for custom fields in Formbuilder.
+     * If it is not valid then null is returned.
+     *
+     * @param   string  $section  The section to get the mapping for
+     * @param   object  $item     The item
+     *
+     * @return  string|null  The new section
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    public function validateFormbuilderCustomFieldSection(string $section, string $client, object|null $item = null): ?string
+    {
+        $clientInfo = \Joomla\CMS\Application\ApplicationHelper::getClientInfo($client, true);
+
+        if ($clientInfo->name === 'site' && $section == 'contact') { // XXX && $item instanceof Form) {
+            // The contact form needs to be the mail section
+            $section = 'mail';
+        }
+
+        if ($clientInfo->name === 'site' && ($section === 'category' || $section === 'form')) {
+            // The contact form needs to be the mail section
+            $section = 'contact';
+        }
+
+        if ($section !== 'mail' && $section !== 'contact') {
+            // We don't know other sections
+            return null;
+        }
+
+        return $section;
     }
 }

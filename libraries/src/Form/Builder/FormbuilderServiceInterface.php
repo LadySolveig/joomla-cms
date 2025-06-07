@@ -25,13 +25,14 @@ interface FormbuilderServiceInterface
      * is returned.
      *
      * @param   string  $section  The section to get the mapping for
+     * @param   string  $client   The client context (e.g. 'site', 'administrator')
      * @param   object  $item     The item
      *
      * @return  string|null  The new section
      *
      * @since   __DEPLOY_VERSION__
      */
-    // public function validateSection($section, $item = null);
+    public function validateFormbuilderCustomFieldSection(string $section, string $client, object|null $item = null): string|null;
 
     /**
      * Returns valid contexts.
