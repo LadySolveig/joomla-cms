@@ -80,32 +80,88 @@ Text::script('JOPTION_REQUIRED');
     <?php echo $this->sublayout('emptystate', $displayData); ?>
 <?php else : ?>
     <joomla-form-builder>
-    <div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
-        <button class="btn btn-success" type="button" data-task="add-fieldset">
-            <span class="icon-add me-2" aria-hidden="true"></span>
-            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
-        </button>
-    <button class="btn btn-danger" type="button" data-task="remove-fieldset">
-            <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
-            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
-        </button>
-    </div>
-    <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
-        <span slot="field-form">
-            <?php echo $this->sublayout('form-fields', ['form' => $form, 'formFields' => $formFields]); ?>
-        </span>
-    </joomla-drop-list>
-    <joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
-        <span slot="field-available">
-            <?php echo $this->sublayout('available-fields', ['form' => $form, 'formFields' => $formFields]); ?>
-        </span>
-    </joomla-drop-list>
-    <input
-        type="hidden"
-        name="<?php echo $name; ?>"
-        id="<?php echo $id; ?>"
-        value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
-        data-update="formbuilder"
-    <?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
+        <div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
+            <button class="btn btn-success" type="button" data-task="add-tab">
+                <span class="icon-add me-2" aria-hidden="true"></span>
+                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
+            </button>
+        <button class="btn btn-danger" type="button" data-task="remove-fieldset">
+                <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
+                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
+            </button>
+        </div>
+        <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
+            <span slot="field-form">
+                <?php echo $this->sublayout('form-fields', ['form' => $form, 'formFields' => $formFields]); ?>
+            </span>
+        </joomla-drop-list>
+        <joomla-drop-list class="joomla-formbuilder-available-items" slotName="field-available">
+            <span slot="field-available">
+                <?php echo $this->sublayout('available-fields', ['form' => $form, 'formFields' => $formFields]); ?>
+            </span>
+        </joomla-drop-list>
+        <input
+            type="hidden"
+            name="<?php echo $name; ?>"
+            id="<?php echo $id; ?>"
+            value="<?php echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8'); ?>"
+            data-update="formbuilder"
+        <?php echo $class, $disabled, $onchange, $dataAttribute; ?>>
+        <template id="new-fieldset-template">
+            <joomla-drop-list-item drag-handle=".joomla-drop-list-item-drag-btn">
+                <div class="joomla-formbuilder-item">
+                    <button type="button" aria-label="COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_DRAG_FIELDSET"
+                        class="btn btn-primary m-1 mb-3 btn-sm joomla-drop-list-item-drag-btn">
+                        <span class="icon-move icon-lg" aria-hidden="true"></span>
+                    </button>
+                    <div class="joomla-form-builder_item-menu btn-group dropstart position-absolute top-0 end-0 m-1 ">
+                        <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" role="menu" aria-expanded="false">
+                            <span class="fa fa-solid fa-ellipsis fa-xl"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-start">
+                            <li>
+                                <button tabindex="-1" role="button" class="dropdown-item" data-task="move">
+                                    <span class="icon-minus icon-fw me-1" aria-hidden="true"></span><?php echo Text::_('JGLOBAL_FIELD_REMOVE'); ?>
+                                </button>
+                            </li>
+                            <li>
+                                <button tabindex="-1" role="button" class="dropdown-item" data-task="up">
+                                    <span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>
+                                    <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_UP'); ?>
+                                </button>
+                            </li>
+                            <li>
+                                <button tabindex="-1" role="button" class="dropdown-item" data-task="down">
+                                    <span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>
+                                    <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_DOWN'); ?>
+                                </button>
+                            </li>
+                            <li>
+                                <button tabindex="-1" role="button" class="dropdown-item" data-task="required">
+                                    <span class="icon-lock icon-fw me-1" aria-hidden="true"></span>
+                                    <?php echo Text::_('JOPTION_REQUIRED'); ?>
+                                </button>
+                            </li>
+                            <li>
+                                <button tabindex="-1" role="button" class="dropdown-item" data-task="hide">
+                                    <span class="icon-eye-slash icon-fw me-1" aria-hidden="true"></span>
+                                    <?php echo Text::_('JHIDE'); ?>
+                                </button>
+                            </li>
+                            <!-- @TODO language string -->
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </div>
+                    <div class="joomla-formbuilder_item-badges position-absolute bottom-0 start 0">
+                    </div>
+                    <fieldset class="options-form">
+                        <legend></legend>
+                        <joomla-drop-list class="joomla-formbuilder-form-items" slot="field-form" dropzone="move">
+                        </joomla-drop-list>
+                    </fieldset>
+                </div>
+            </joomla-drop-list-item>
+        </template>
     </joomla-form-builder>
 <?php endif; ?>
