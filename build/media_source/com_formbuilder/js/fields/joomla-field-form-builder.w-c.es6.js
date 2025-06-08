@@ -310,7 +310,7 @@ class JoomlaFormBuilder extends HTMLElement {
         console.error('Debug: task add-fieldset: form-fields-tab not found');
         return;
       }
-      const currentTab = event.target.closest('joomla-tab-element');
+      const currentTab = tabParent.querySelector('joomla-tab-element[active]');
       const countFieldsetElements = currentTab.querySelectorAll('fieldset').length;
 
       // Add Language String for new Fieldset

@@ -81,14 +81,42 @@ Text::script('JOPTION_REQUIRED');
 <?php else : ?>
     <joomla-form-builder>
         <div class="joomla-form-builder-actions d-grid mb-2 gap-2 d-md-flex justify-content-md-end">
-            <button class="btn btn-success" type="button" data-task="add-tab">
-                <span class="icon-add me-2" aria-hidden="true"></span>
-                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
-            </button>
-        <button class="btn btn-danger" type="button" data-task="remove-fieldset">
-                <span class="icon-delete fa-minus me-2" aria-hidden="true"></span>
-                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
-            </button>
+            <div class="btn-group">
+                <button class="btn btn-success" type="button" data-task="add-tab">
+                    <span class="icon-add me-2" aria-hidden="true"></span>
+                    <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_TAB'); ?>
+                </button>
+                <button type="button" class="btn btn-success dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-target=".dropdown-menu" data-bs-display="static" aria-haspopup="true" aria-expanded="false">
+                    <span class="visually-hidden"><?php echo Text::_('JGLOBAL_TOGGLE_DROPDOWN'); ?></span>
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button role="button" class="dropdown-item" data-task="add-fieldset">
+                            <span class="icon-add me-2" aria-hidden="true"></span>
+                            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_ADD_FIELDSET'); ?>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-danger" type="button" data-task="remove-fieldset">
+                    <span class="icon-delete me-2" aria-hidden="true"></span>
+                    <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_TAB'); ?>
+                </button>
+                <button type="button" class="btn btn-danger dropdown-toggle-split" data-bs-toggle="dropdown" data-bs-target=".dropdown-menu" data-bs-display="static" aria-haspopup="true" aria-expanded="false">
+                    <span class="visually-hidden"><?php echo Text::_('JGLOBAL_TOGGLE_DROPDOWN'); ?></span>
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button role="button" class="dropdown-item" data-task="remove-fieldset">
+                            <span class="icon-delete me-2" aria-hidden="true"></span>
+                            <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_REMOVE_FIELDSET'); ?>
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
         <joomla-drop-list class="joomla-formbuilder-form-items" slotName="field-form">
             <span slot="field-form">
