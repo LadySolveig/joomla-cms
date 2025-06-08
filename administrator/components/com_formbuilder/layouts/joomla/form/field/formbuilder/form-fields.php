@@ -52,24 +52,24 @@ extract($displayData);
                     </button>
                     <ul class="dropdown-menu dropdown-menu-start">
                         <li>
-                            <button tabindex="-1" role="button" class="dropdown-item" data-task="move">
+                            <button role="button" class="dropdown-item" data-task="move">
                                 <span class="icon-minus icon-fw me-1" aria-hidden="true"></span><?php echo Text::_('JGLOBAL_FIELD_REMOVE'); ?>
                             </button>
                         </li>
                         <li>
-                            <button tabindex="-1" role="button" class="dropdown-item" data-task="up">
+                            <button role="button" class="dropdown-item" data-task="up">
                                 <span class="icon-arrow-up icon-fw me-1" aria-hidden="true"></span>
                                 <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_UP'); ?>
                             </button>
                         </li>
                         <li>
-                            <button tabindex="-1" role="button" class="dropdown-item" data-task="down">
+                            <button role="button" class="dropdown-item" data-task="down">
                                 <span class="icon-arrow-down icon-fw me-1" aria-hidden="true"></span>
-                                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE'); ?>
+                                <?php echo Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_DOWN'); ?>
                             </button>
                         </li>
                         <li>
-                            <button tabindex="-1" role="button" class="dropdown-item" data-task="required">
+                            <button role="button" class="dropdown-item" data-task="required">
                                 <span class="icon-<?php echo $newAttributesArray['required'] ? 'unlock' : 'lock' ?> icon-fw me-1" aria-hidden="true"></span>
                                 <?php echo $newAttributesArray['required']
                                     ? Text::_('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE')
@@ -77,7 +77,7 @@ extract($displayData);
                             </button>
                         </li>
                         <li>
-                            <button tabindex="-1" role="button" class="dropdown-item" data-task="hide">
+                            <button role="button" class="dropdown-item" data-task="hide">
                                 <span class="icon-eye<?php echo !$newAttributesArray['hidden'] ? '' : '-slash' ?> icon-fw me-1" aria-hidden="true"></span>
                                 <?php echo $newAttributesArray['hidden']
                                     ? Text::_('JSHOW')
@@ -89,7 +89,7 @@ extract($displayData);
                         <li><a class="dropdown-item" href="#">Something else here</a></li>
                     </ul>
                 </div>
-                <div class="joomla-formbuilder_item-badges position-absolute bottom-0 start 0">
+                <div class="joomla-formbuilder_item-badges position-absolute me-1 bottom-0 end-0">
                     <?php if ($newAttributesArray['required']) : ?>
                         <span class="badge badge-required text-bg-danger fs-5 fw-medium mt-1 me-0 m-2"><?php echo Text::_('JOPTION_REQUIRED'); ?></span>
                     <?php endif; ?>
