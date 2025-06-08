@@ -192,7 +192,7 @@ class JoomlaFormBuilder extends HTMLElement {
     const target = event.target.tagName === 'SPAN' ? event.target.closest('button, a') : event.target;
 
     // Get the task
-    let task = target.getAttribute('data-task');
+    let task = target?.getAttribute('data-task');
     if (!task) return;
 
     // Prevent submit
@@ -285,10 +285,10 @@ class JoomlaFormBuilder extends HTMLElement {
     }
 
     // Add a new fieldset
-    if (task === 'add-fieldset') {
+    if (task === 'add-tab') {
       const tabParent = this.querySelector('#form-fields-tab');
       if (!tabParent) {
-        console.error('Debug: task add-fieldset: form-fields-tab not found');
+        console.error('Debug: task add-tab: form-fields-tab not found');
         return;
       }
       const countTabElements = tabParent.querySelectorAll('joomla-tab-element').length;
@@ -301,7 +301,50 @@ class JoomlaFormBuilder extends HTMLElement {
         tabElement.setAttribute('role', 'tabpanel');
         tabParent.appendChild(tabElement);
       });
+    }
 
+    // Add a new fieldset
+    if (task === 'add-fieldset') {
+      const tabParent = this.querySelector('#form-fields-tab');
+      if (!tabParent) {
+        console.error('Debug: task add-fieldset: form-fields-tab not found');
+        return;
+      }
+      const currentTab = event.target.closest('joomla-tab-element');
+      const countFieldsetElements = currentTab.querySelectorAll('fieldset').length;
+
+      // Add Language String for new Fieldset
+      const fieldsetLabel = `COM_FORMBUILDER_FIELDSET_FIELDSET_FORM_FIELDS_${countFieldsetElements + 1}_TITLE`;
+      this.editLanguageString(fieldsetLabel, 'Fieldset ' + (countFieldsetElements + 1)).then((title) => {
+        if ("content" in document.createElement("template")) {
+          const newFielsetTemplate = document.querySelector("#new-fieldset-template");
+          const clone = newFielsetTemplate.content.cloneNode(true);
+          const fieldsetLegend = clone.querySelector('legend');
+          fieldsetLegend.textContent = `${title}`;
+          const fieldsetElement = clone.querySelector('fieldset');
+          fieldsetElement.id = `form-fields-fieldset-${countFieldsetElements + 1}`;
+          currentTab.appendChild(clone);
+        } else {
+          // Fallback if template not supported
+          currentTab.innerHTML = currentTab.innerHTML + '<joomla-drop-list-item drag-handle=".joomla-drop-list-item-drag-btn" id="new-drop-list-item"></joomla-drop-list-item>';
+          const newDropListItem = currentTab.querySelector('#new-drop-list-item');
+          newDropListItem.removeAttribute('id');
+          const dragBtn = document.createElement('button');
+          dragBtn.setAttribute('type', 'button');
+          dragBtn.setAttribute('aria-label', Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_DRAG_FIELDSET'));
+          dragBtn.innerHTML = `<span class="icon-move icon-lg" aria-hidden="true"></span>`;
+          dragBtn.classList.add('btn', 'btn-primary', 'mb-3', 'joomla-drop-list-item-drag-btn');
+          newDropListItem.appendChild(dragBtn);
+          const fieldsetElement = document.createElement('fieldset');
+          fieldsetElement.id = `form-fields-fieldset-${countFieldsetElements + 1}`;
+          fieldsetElement.classList.add('options-form');
+          newDropListItem.appendChild(fieldsetElement);
+          const fieldsetLegend = document.createElement('legend');
+          fieldsetLegend.textContent = `${title}`;
+          fieldsetElement.appendChild(fieldsetLegend);
+          fieldsetElement.innerHTML += `<joomla-drop-list class joomla-formbuilder-form-items slot="field-form"></joomla-drop-list>`;
+        }
+      });
     }
 
     // Edit Fieldset Title
@@ -474,22 +517,24 @@ class JoomlaFormBuilder extends HTMLElement {
    * @param {HTMLElement} menu The menu element
    */
   addAdditionalActionButtons = (menu) => {
-    const data = JSON.parse(menu.closest('[data-formbuilder]').dataset.formbuilder);
-    if (!menu.querySelector('[data-task="required"]')) {
-      let btnRequired = document.createElement('li');
-      btnRequired.innerHTML =
-      `<button tabindex="-1" role="button" class="dropdown-item" data-task="required">` +
-        `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
+    if (menu.closest('[data-formbuilder]')) {
+      const data = JSON.parse(menu.closest('[data-formbuilder]').dataset.formbuilder);
+      if (!menu.querySelector('[data-task="required"]')) {
+        let btnRequired = document.createElement('li');
+        btnRequired.innerHTML =
+        `<button tabindex="-1" role="button" class="dropdown-item" data-task="required">` +
+          `<span class="icon-${data.required ? 'unlock' : 'lock'} icon-fw me-1" aria-hidden="true"></span>${data.required ? Joomla.Text._('COM_FORMBUILDER_FIELD_FORMBUILDER_BUTTON_REQUIRED_FALSE') : Joomla.Text._('JOPTION_REQUIRED')}` +
+        `</button>`;
+        menu.firstElementChild.after(btnRequired);
+      }
+      if (menu.querySelector('[data-task="hide"]')) return;
+      let btnHide = document.createElement('li');
+      btnHide.innerHTML =
+      `<button tabindex="-1" role="button" class="dropdown-item" data-task="hide">` +
+        `<span class="icon-eye${data.hidden ? '': '-slash'} icon-fw me-1" aria-hidden="true"></span>${data.hidden ? Joomla.Text._('JSHOW') : Joomla.Text._('JHIDE')}` +
       `</button>`;
-      menu.firstElementChild.after(btnRequired);
+      menu.firstElementChild.after(btnHide);
     }
-    if (menu.querySelector('[data-task="hide"]')) return;
-    let btnHide = document.createElement('li');
-    btnHide.innerHTML =
-    `<button tabindex="-1" role="button" class="dropdown-item" data-task="hide">` +
-      `<span class="icon-eye${data.hidden ? '': '-slash'} icon-fw me-1" aria-hidden="true"></span>${data.hidden ? Joomla.Text._('JSHOW') : Joomla.Text._('JHIDE')}` +
-    `</button>`;
-    menu.firstElementChild.after(btnHide);
   }
 
   /**

@@ -109,5 +109,13 @@ joomla-form-builder {
       background-color: var(----button-and-icon-color);
       color: var(--template-text-light);
     }
+
+    .options-form {
+      padding: 0;
+    }
+  }
+
+  .joomla-drop-list-item-drag-btn {
+    padding: .5rem;
   }
 }

@@ -61,8 +61,8 @@ class JoomlaDropList extends HTMLElement {
 
     // Get all items in this container
     const items = slotName
-      ? this.querySelector(`span[slot="${slotName}"]`).querySelectorAll('joomla-drop-list-item')
-      : this.querySelectorAll('joomla-drop-list-item');
+      ? this.querySelector(`span[slot="${slotName}"]`).querySelectorAll('joomla-drop-list-item[draggable="true"]')
+      : this.querySelectorAll('joomla-drop-list-item[draggable="true"]');
 
     if (items.length >= 1) {
       // Get the clientY from the drop position from the event

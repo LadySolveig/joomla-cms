@@ -13,7 +13,9 @@ class JoomlaDropListItem extends HTMLElement {
 
     // You _cannot_ just set draggable without the string "true";
     // it will not work
-    this.setAttribute("draggable", "true");
+    if (!this.hasAttribute("drag-handle")) {
+      this.setAttribute("draggable", "true");
+    }
 
     const shadowRoot = this.attachShadow({ mode: "open" });
     shadowRoot.innerHTML = `
@@ -27,6 +29,8 @@ class JoomlaDropListItem extends HTMLElement {
     this.addEventListener("dragover", this);
     this.addEventListener("dragleave", this);
     this.addEventListener('click', this);
+    this.addEventListener('mousedown', this);
+    this.addEventListener('mouseup', this);
   }
 
   /**
@@ -43,13 +47,18 @@ class JoomlaDropListItem extends HTMLElement {
   // Important: we need to understand who's dragging so we can
   // grab in the dropzone
   ondragstart(event) {
-    event.dataTransfer.setData("text/html", "test");
-    this.setAttribute("dragging", "");
+    if (this.hasAttribute('draggable')) {
+      event.dataTransfer.setData("text/html", "test");
+      this.setAttribute("dragging", "");
+    }
   }
 
   ondragend(event) {
     this.removeAttribute("over");
     this.removeAttribute("dragging");
+    if (this.hasAttribute('drag-handle')) {
+      this.removeAttribute('draggable');
+    }
   }
 
   ondragover(event) {
@@ -77,6 +86,9 @@ class JoomlaDropListItem extends HTMLElement {
   ondragleave(event) {
     this.removeAttribute("over");
     event.target.closest('joomla-drop-list-item').style["boxShadow"] = '';
+    if (this.hasAttribute('drag-handle')) {
+      this.removeAttribute('draggable');
+    }
   }
 
   /**
@@ -87,6 +99,15 @@ class JoomlaDropListItem extends HTMLElement {
     // Get the task
     let task = event.target.getAttribute('data-task');
     if (!task) return;
+
+    if (this.hasAttribute('drag-handle')) {
+     // If the click is on the drag handle, prevent default behavior and return
+      const dragHandle = this.querySelector(this.getAttribute('drag-handle'));
+      if (event.target === dragHandle || event.target.closest('button') === dragHandle) {
+        event.preventDefault();
+        return;
+      }
+    }
 
     // Prevent submit
     event.preventDefault();
@@ -111,6 +132,31 @@ class JoomlaDropListItem extends HTMLElement {
         container.insertBefore(next, item);
         this.emit('down', { item: item });
       }
+    }
+  }
+
+  /**
+   * Handle mouse down events
+   * @param  {Event} event The event object
+   */
+  onmousedown (event) {
+    // If the mousedown is on the drag handle, allow dragging
+    if (this.hasAttribute('drag-handle')) {
+      const dragHandle = this.querySelector(this.getAttribute('drag-handle'));
+      if (event.target === dragHandle || event.target.closest('button') === dragHandle) {
+        this.setAttribute('draggable', 'true');
+      }
+    }
+  }
+
+  /**
+   * Handle mouse up events
+   * @param  {Event} event The event object
+   */
+  onmouseup (event) {
+    // If the mouseup is on the drag handle, allow dragging
+    if (this.hasAttribute('drag-handle')) {
+      this.removeAttribute('draggable');
     }
   }
 
