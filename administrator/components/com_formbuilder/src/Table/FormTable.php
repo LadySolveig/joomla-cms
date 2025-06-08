@@ -103,6 +103,10 @@ class FormTable extends Table implements CurrentUserInterface
             $this->formbuilder = '{}';
         }
 
+        if (empty($this->params)) {
+            $this->params = '{}';
+        }
+
         $date = Factory::getDate()->toSql();
         $user = $this->getCurrentUser();
 
