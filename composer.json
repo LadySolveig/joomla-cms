@@ -135,7 +135,10 @@
   },
   "scripts": {
     "post-install-cmd": [
-    "php build/update_fido_cache.php"
-    ]
+    "php build/update_fido_cache.php",
+    "git config --local include.path ./build/githooks/.gitconfig"
+    ],
+    "phpcbf": "./vendor/bin/phpcbf --standard=ruleset.xml --extensions=php -n ./src",
+    "csfixer:fix": "./vendor/bin/php-cs-fixer --ansi --config=.php-cs-fixer.dist.php fix -vvv --diff"
   }
 }
