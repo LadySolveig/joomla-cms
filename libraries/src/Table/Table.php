@@ -18,7 +18,6 @@ use Joomla\CMS\Object\LegacyErrorHandlingTrait;
 use Joomla\CMS\Object\LegacyPropertyManagementTrait;
 use Joomla\Database\DatabaseAwareInterface;
 use Joomla\Database\DatabaseAwareTrait;
-use Joomla\Database\DatabaseDriver;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\DatabaseQuery;
 use Joomla\Database\Exception\DatabaseNotFoundException;
@@ -88,12 +87,12 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
     protected $_tbl_keys = [];
 
     /**
-     * DatabaseDriver object.
+     * DatabaseInterface object.
      *
-     * @var    DatabaseDriver
+     * @var    DatabaseInterface
      * @since  1.7.0
      *
-     * @deprecated  __DEPLOY_VERSION__ will be removed in 7.0
+     * @deprecated  5.4.0 will be removed in 7.0
      *              Use setDatabase() and getDatabase() instead
      *              Example: $this->setDatabase($db);
      */
@@ -283,8 +282,9 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
      * @since       1.7.0
      *
      * @deprecated  4.3 will be removed in 6.0
-     *              Use the MvcFactory instead
+     *              Use the MvcFactory instead or instantiate the table class directly.
      *              Example: Factory::getApplication()->bootComponent('...')->getMVCFactory()->createTable($name, $prefix, $config);
+     *              $table = new \Joomla\CMS\Table\Content($db);
      */
     public static function getInstance($type, $prefix = 'JTable', $config = [])
     {
@@ -536,13 +536,13 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
     }
 
     /**
-     * Method to get the DatabaseDriver object.
+     * Method to get the DatabaseInterface object.
      *
-     * @return  DatabaseDriver  The internal database driver object.
+     * @return  DatabaseInterface  The internal database driver object.
      *
      * @since   1.7.0
      *
-     * @deprecated  __DEPLOY_VERSION__ will be removed in 7.0
+     * @deprecated  5.4.0 will be removed in 7.0
      *               Use getDatabase() instead
      *               Example: $this->getDatabase();
      */
@@ -552,19 +552,19 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
     }
 
     /**
-     * Method to set the DatabaseDriver object.
+     * Method to set the DatabaseInterface object.
      *
-     * @param   DatabaseDriver  $db  A DatabaseDriver object to be used by the table object.
+     * @param   DatabaseInterface  $db  A DatabaseInterface object to be used by the table object.
      *
      * @return  boolean  True on success.
      *
      * @since   1.7.0
      *
-     * @deprecated  __DEPLOY_VERSION__ will be removed in 7.0
+     * @deprecated  5.4.0 will be removed in 7.0
      *              Use setDatabase() instead
      *              Example: $this->setDatabase($db);
      */
-    public function setDbo(DatabaseDriver $db)
+    public function setDbo(DatabaseInterface $db)
     {
         $this->_db = $db;
 
@@ -576,7 +576,7 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
      *
      * @return  DatabaseInterface
      *
-     * @since   __DEPLOY_VERSION__
+     * @since   5.4.0
      * @throws  DatabaseNotFoundException May be thrown if the database has not been set.
      *
      * @note    This method will be removed in 7.0 and DatabaseAwareTrait will be used instead.
@@ -593,7 +593,7 @@ abstract class Table extends \stdClass implements TableInterface, DispatcherAwar
      *
      * @return  void
      *
-     * @since   __DEPLOY_VERSION__
+     * @since   5.4.0
      *
      * @note    This method will be removed in 7.0 and DatabaseAwareTrait will be used instead.
      */

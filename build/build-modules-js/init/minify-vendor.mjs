@@ -7,12 +7,12 @@ import { transform } from 'esbuild';
 const RootPath = process.cwd();
 
 const folders = [
-  'media/vendor/chosen/js',
+  'media/vendor/accessibility/js',
   'media/vendor/debugbar',
   'media/vendor/diff/js',
   'media/vendor/es-module-shims/js',
   'media/vendor/qrcode/js',
-  'media/vendor/webcomponentsjs/js',
+  'media/vendor/tinymce/langs',
 ];
 
 let allFiles = [];
@@ -50,7 +50,6 @@ const minifyJS = async (file) => {
     return;
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Processing Vendor file: ${file}`);
 
   let minified;
