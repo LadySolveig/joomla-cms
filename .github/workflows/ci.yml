@@ -468,8 +468,8 @@ jobs:
           mysql -h mysql -uroot -pjoomla_ut test_joomla -e "
             INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
             VALUES
-              (\$USER_ID, 'joomlatoken.token',   '\"testtoken\"', 1),
-              (\$USER_ID, 'joomlatoken.enabled', '\"1\"', 2)
+              ($USER_ID, 'joomlatoken.token',   '\"testtoken\"', 1),
+              ($USER_ID, 'joomlatoken.enabled', '\"1\"', 2)
             ON DUPLICATE KEY UPDATE profile_value = VALUES(profile_value);
           "
       - name: Checkout API Endpoints tests
