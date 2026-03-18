@@ -422,6 +422,91 @@ jobs:
           POSTGRES_PASSWORD: joomla_ut
           POSTGRES_DB: test_joomla
 
+  api:
+    name: Run API tests
+    runs-on: ubuntu-latest
+    container: joomlaprojects/docker-images:php8.4
+    needs: [code-style-php]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: libraries/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+      - uses: actions/cache/restore@v4
+        with:
+          path: plugins/system/webauthn/fido.jwt
+          key: ${{ runner.os }}-webauthn-${{ hashFiles('composer.lock') }}
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            media
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'build/media_source/**', 'administrator/components/com_media/resources/**') }}
+      - name: Install Joomla via CLI
+        run: |
+          php ./installation/joomla.php install \
+            --no-interaction \
+            --db-host=db \
+            --db-user=root \
+            --db-pass=joomla_ut \
+            --db-name=test_joomla \
+            --site-name="Joomla CI API-Test" \
+            --admin-user=admin \
+            --admin-password=admin1234567 \
+            --admin-email=admin@ci.test \
+            --admin-username=admin \
+            --db-type=mysqli \
+            --db-prefix=j_
+          cp htaccess.txt .htaccess
+          php ./cli/joomla.php config:set sef=1 sef_rewrite=1
+      - name: Start PHP built-in server
+        run: php -S 127.0.0.1:80 -t . > /dev/null 2>&1 &
+      - name: Set token for admin user
+        run: |
+          USER_ID=$(mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
+          mysql -uroot -pjoomla_ut test_joomla -e "
+            INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
+            VALUES
+              (\$USER_ID, 'joomlatoken.token',   '\"testtoken\"', 1),
+              (\$USER_ID, 'joomlatoken.enabled', '\"1\"', 2)
+            ON DUPLICATE KEY UPDATE profile_value = VALUES(profile_value);
+          "
+      - name: Checkout API Endpoints tests
+        uses: actions/checkout@v4
+        with:
+          repository: joomla-projects/API-Endpoints
+          ref: bruno
+          path: ${{ github.workspace }}/tests/api-endpoints
+      - name: Install Bruno CLI
+        run: |
+          npm install -g @usebruno/cli
+      - name: Create test-results directory
+        run: mkdir -p ${{ github.workspace }}/test-results
+      - name: Run Bruno API tests
+        working-directory: "${{ github.workspace }}/tests/api-endpoints/bruno/Joomla Web Services API"
+        run: |
+          bru . run oauth2/ --noproxy --env local \
+            --env-var base_url="http://127.0.0.1/api/index.php" \
+            --env-var api_key="testtoken" \
+            --reporter-junit ${{ github.workspace }}/test-results/bruno-results.xml \
+            --reporter-html ${{ github.workspace }}/test-results/bruno-results.html
+      - name: Archive API test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-output-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: ignore
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_USER: joomla_ut
+          MYSQL_PASSWORD: joomla_ut
+          MYSQL_ROOT_PASSWORD: joomla_ut
+          MYSQL_DATABASE: test_joomla
+
   typos:
     name: Check for typos
     runs-on: ubuntu-latest
