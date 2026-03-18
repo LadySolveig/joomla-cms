@@ -462,6 +462,10 @@ jobs:
           php ./cli/joomla.php config:set sef=1 sef_rewrite=1
       - name: Start PHP built-in server
         run: php -S 127.0.0.1:80 -t . > /dev/null 2>&1 &
+      - name: Debug PHP server
+        run: |
+          sleep 1
+          wget -SO- http://127.0.0.1/api/index.php 2>&1 || true
       - name: Set token for admin user
         run: |
           USER_ID=$(mysql -h mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
