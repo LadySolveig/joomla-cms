@@ -464,8 +464,8 @@ jobs:
         run: php -S 127.0.0.1:80 -t . > /dev/null 2>&1 &
       - name: Set token for admin user
         run: |
-          USER_ID=$(mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
-          mysql -uroot -pjoomla_ut test_joomla -e "
+          USER_ID=$(mysql -h mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
+          mysql -h mysql -uroot -pjoomla_ut test_joomla -e "
             INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
             VALUES
               (\$USER_ID, 'joomlatoken.token',   '\"testtoken\"', 1),
