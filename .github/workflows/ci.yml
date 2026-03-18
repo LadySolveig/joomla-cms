@@ -447,7 +447,7 @@ jobs:
         run: |
           php ./installation/joomla.php install \
             --no-interaction \
-            --db-host=db \
+            --db-host=mysql \
             --db-user=root \
             --db-pass=joomla_ut \
             --db-name=test_joomla \
@@ -506,6 +506,11 @@ jobs:
           MYSQL_PASSWORD: joomla_ut
           MYSQL_ROOT_PASSWORD: joomla_ut
           MYSQL_DATABASE: test_joomla
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
   typos:
     name: Check for typos
