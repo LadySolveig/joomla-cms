@@ -458,8 +458,6 @@ jobs:
             --admin-username=admin \
             --db-type=mysqli \
             --db-prefix=j_
-          cp htaccess.txt .htaccess
-          php ./cli/joomla.php config:set sef=1 sef_rewrite=1
       - name: Start PHP built-in server
         run: php -S 127.0.0.1:80 -t . > /dev/null 2>&1 &
       - name: Debug PHP server
@@ -491,13 +489,13 @@ jobs:
       - name: Create test-results directory
         run: mkdir -p ${{ github.workspace }}/test-results
       - name: Run Bruno API tests
-        working-directory: "${{ github.workspace }}/tests/api-endpoints/bruno/Joomla Web Services API"
         run: |
+          cd "${{ github.workspace }}/tests/api-endpoints/bruno/Joomla Web Services API"
           bru . --noproxy \
             --env-var base_url="http://127.0.0.1/api/index.php" \
             --env-var api_key="testtoken" \
-            --reporter-junit ${{ github.workspace }}/test-results/bruno-results.xml \
-            --reporter-html ${{ github.workspace }}/test-results/bruno-results.html
+            --reporter-junit "${{ github.workspace }}/test-results/bruno-results.xml" \
+            --reporter-html "${{ github.workspace }}/test-results/bruno-results.html"
       - name: Archive API test results
         uses: actions/upload-artifact@v4
         if: always()
