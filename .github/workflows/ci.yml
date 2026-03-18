@@ -478,6 +478,9 @@ jobs:
           repository: joomla-projects/API-Endpoints
           ref: bruno
           path: ${{ github.workspace }}/tests/api-endpoints
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
       - name: Install Bruno CLI
         run: |
           npm install -g @usebruno/cli
