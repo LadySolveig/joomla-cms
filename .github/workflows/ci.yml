@@ -463,7 +463,7 @@ jobs:
       - name: Debug PHP server
         run: |
           sleep 1
-          wget -SO- http://127.0.0.1/api/index.php 2>&1 || true
+          wget -SO- http://127.0.0.1/index.php 2>&1 || true
       - name: Set token for admin user
         run: |
           USER_ID=$(mysql -h mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
