@@ -477,8 +477,10 @@ jobs:
       - name: Checkout API Endpoints tests
         uses: actions/checkout@v4
         with:
-          repository: joomla-projects/API-Endpoints
-          ref: bruno
+          # repository: joomla-projects/API-Endpoints
+          # ref: bruno
+          repository: LadySolveig/Joomla-API-Endpoints
+          ref: patch-for-automated-testing
           path: ${{ github.workspace }}/tests/api-endpoints
       - uses: actions/setup-node@v4
         with:
