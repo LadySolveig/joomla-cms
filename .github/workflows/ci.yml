@@ -502,7 +502,7 @@ jobs:
         if: always()
         with:
           name: api-test-output-${{ github.run_id }}
-          path: ${{ github.workspace }}/test-results/
+          path: ${{ github.workspace }}/test-results/bruno-results.html
           if-no-files-found: ignore
     services:
       mysql:
