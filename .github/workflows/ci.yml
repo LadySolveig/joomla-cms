@@ -491,8 +491,8 @@ jobs:
       - name: Create test-results directory
         run: mkdir -p ${{ github.workspace }}/test-results
       - name: Run Bruno API tests
+        working-directory: ${{ github.workspace }}/tests/api-endpoints/bruno/joomla-web-services-api
         run: |
-          cd "${{ github.workspace }}/tests/api-endpoints/bruno/Joomla Web Services API"
           bru . --noproxy \
             --env-var base_url="http://127.0.0.1/api/index.php" \
             --env-var api_key="testtoken" \
