@@ -496,14 +496,13 @@ jobs:
           bru run . --noproxy \
             --env-var base_url="http://127.0.0.1/api/index.php" \
             --env-var api_key="testtoken" \
-            --reporter-junit "${{ github.workspace }}/test-results/bruno-results.xml" \
             --reporter-html "${{ github.workspace }}/test-results/bruno-results.html"
       - name: Archive API test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: api-test-output-${{ github.run_id }}
-          path: test-results/
+          path: ${{ github.workspace }}/test-results/
           if-no-files-found: ignore
     services:
       mysql:
