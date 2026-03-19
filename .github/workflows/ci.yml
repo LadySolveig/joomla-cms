@@ -493,7 +493,7 @@ jobs:
       - name: Run Bruno API tests
         working-directory: ${{ github.workspace }}/tests/api-endpoints/bruno/joomla-web-services-api
         run: |
-          bru run . --noproxy \
+          bru run . -r --noproxy \
             --env-var base_url="http://127.0.0.1/api/index.php" \
             --env-var api_key="testtoken" \
             --reporter-html "${{ github.workspace }}/test-results/bruno-results.html"
