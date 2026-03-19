@@ -425,7 +425,7 @@ jobs:
   api:
     name: Run API tests
     runs-on: ubuntu-latest
-    container: joomlaprojects/docker-images:php8.4
+    container: joomlaprojects/docker-images:cypress8.4
     needs: [code-style-php]
     steps:
       - uses: actions/checkout@v4
@@ -443,9 +443,16 @@ jobs:
             node_modules
             media
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'build/media_source/**', 'administrator/components/com_media/resources/**') }}
+      - name: Copy files to Apache web root and start Apache
+        run: |
+          rsync -a --exclude='.git' ${{ github.workspace }}/ /tests/www/api-test/
+          cp /tests/www/api-test/htaccess.txt /tests/www/api-test/.htaccess
+          chown -R www-data /tests/www/api-test/
+          a2enmod rewrite
+          apache2ctl start
       - name: Install Joomla via CLI
         run: |
-          php ./installation/joomla.php install \
+          php /tests/www/api-test/installation/joomla.php install \
             --no-interaction \
             --db-host=mysql \
             --db-user=root \
@@ -458,12 +465,6 @@ jobs:
             --admin-username=admin \
             --db-type=mysqli \
             --db-prefix=j_
-      - name: Start PHP built-in server
-        run: php -S 127.0.0.1:80 -t . > /dev/null 2>&1 &
-      - name: Debug PHP server
-        run: |
-          sleep 1
-          wget -SO- http://127.0.0.1/index.php 2>&1 || true
       - name: Set token for admin user
         run: |
           USER_ID=$(mysql -h mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
@@ -494,7 +495,7 @@ jobs:
         working-directory: ${{ github.workspace }}/tests/api-endpoints/bruno/joomla-web-services-api
         run: |
           bru run . -r --noproxy \
-            --env-var base_url="http://127.0.0.1/api/index.php" \
+            --env-var base_url="http://localhost/api-test/api/index.php" \
             --env-var api_key="testtoken" \
             --reporter-html "${{ github.workspace }}/test-results/bruno-results.html"
       - name: Archive API test results
