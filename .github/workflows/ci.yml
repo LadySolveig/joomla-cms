@@ -467,14 +467,18 @@ jobs:
             --db-prefix=j_
       - name: Set token for admin user
         run: |
-          USER_ID=$(mysql -h mysql -uroot -pjoomla_ut -se 'SELECT id FROM test_joomla.j_users WHERE username = "admin";')
-          mysql -h mysql -uroot -pjoomla_ut test_joomla -e "
-            INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
-            VALUES
-              ($USER_ID, 'joomlatoken.token',   '\"testtoken\"', 1),
-              ($USER_ID, 'joomlatoken.enabled', '\"1\"', 2)
-            ON DUPLICATE KEY UPDATE profile_value = VALUES(profile_value);
-          "
+          php << 'PHPEOF'
+          <?php
+          $pdo = new PDO('mysql:host=mysql;dbname=test_joomla', 'root', 'joomla_ut');
+          $uid = $pdo->query('SELECT id FROM j_users WHERE username = "admin"')->fetchColumn();
+          $stmt = $pdo->prepare(
+            'INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE profile_value = VALUES(profile_value)'
+          );
+          $stmt->execute([$uid, 'joomlatoken.token',   '"testtoken"', 1]);
+          $stmt->execute([$uid, 'joomlatoken.enabled', '"1"',         2]);
+          PHPEOF
       - name: Checkout API Endpoints tests
         uses: actions/checkout@v4
         with:
