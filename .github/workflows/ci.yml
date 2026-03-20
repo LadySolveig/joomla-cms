@@ -422,6 +422,109 @@ jobs:
           POSTGRES_PASSWORD: joomla_ut
           POSTGRES_DB: test_joomla
 
+  api:
+    name: Run API tests
+    runs-on: ubuntu-latest
+    container: joomlaprojects/docker-images:cypress8.4
+    needs: [code-style-php]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: libraries/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+      - uses: actions/cache/restore@v4
+        with:
+          path: plugins/system/webauthn/fido.jwt
+          key: ${{ runner.os }}-webauthn-${{ hashFiles('composer.lock') }}
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            media
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'build/media_source/**', 'administrator/components/com_media/resources/**') }}
+      - name: Copy files to Apache web root and start Apache
+        run: |
+          rsync -a --exclude='.git' $(pwd)/ /tests/www/api-test/
+          cp /tests/www/api-test/htaccess.txt /tests/www/api-test/.htaccess
+          chown -R www-data /tests/www/api-test/
+          a2enmod rewrite
+          apache2ctl start
+      - name: Install Joomla via CLI
+        run: |
+          php /tests/www/api-test/installation/joomla.php install \
+            --no-interaction \
+            --db-host=mysql \
+            --db-user=root \
+            --db-pass=joomla_ut \
+            --db-name=test_joomla \
+            --site-name="Joomla CI API-Test" \
+            --admin-user=admin \
+            --admin-password=admin1234567 \
+            --admin-email=admin@ci.test \
+            --admin-username=admin \
+            --db-type=mysqli \
+            --db-prefix=j_
+      - name: Set token for admin user
+        run: |
+          php << 'PHPEOF'
+          <?php
+          $pdo = new PDO('mysql:host=mysql;dbname=test_joomla', 'root', 'joomla_ut');
+          $uid = $pdo->query('SELECT id FROM j_users WHERE username = "admin"')->fetchColumn();
+          $stmt = $pdo->prepare(
+            'INSERT INTO j_user_profiles (user_id, profile_key, profile_value, ordering)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE profile_value = VALUES(profile_value)'
+          );
+          $stmt->execute([$uid, 'joomlatoken.token',   '"testtoken"', 1]);
+          $stmt->execute([$uid, 'joomlatoken.enabled', '"1"',         2]);
+          PHPEOF
+      - name: Fix file ownership for Apache
+        run: chown -R www-data /tests/www/api-test/
+      - name: Checkout API Endpoints tests
+        uses: actions/checkout@v4
+        with:
+          # repository: joomla-projects/API-Endpoints
+          # ref: bruno
+          repository: LadySolveig/Joomla-API-Endpoints
+          ref: patch-for-automated-testing
+          path: ${{ github.workspace }}/tests/api-endpoints
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+      - name: Install Bruno CLI
+        run: |
+          npm install -g @usebruno/cli
+      - name: Create test-results directory
+        run: mkdir -p $GITHUB_WORKSPACE/tests/test-results
+      - name: Run Bruno API tests
+        working-directory: ${{ github.workspace }}/tests/api-endpoints/bruno/joomla-web-services-api
+        run: |
+          bru run . -r --noproxy \
+            --env-var base_url="http://localhost/api-test/api/index.php" \
+            --env-var api_key="testtoken" \
+            --reporter-html "$GITHUB_WORKSPACE/tests/test-results/bruno-results.html"
+      - name: Archive API test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-output-${{ github.run_id }}
+          path: $GITHUB_WORKSPACE/tests/test-results/bruno-results.html
+          if-no-files-found: ignore
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_USER: joomla_ut
+          MYSQL_PASSWORD: joomla_ut
+          MYSQL_ROOT_PASSWORD: joomla_ut
+          MYSQL_DATABASE: test_joomla
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
   typos:
     name: Check for typos
     runs-on: ubuntu-latest
