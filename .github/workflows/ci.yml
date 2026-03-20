@@ -445,7 +445,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json', 'build/media_source/**', 'administrator/components/com_media/resources/**') }}
       - name: Copy files to Apache web root and start Apache
         run: |
-          rsync -a --exclude='.git' ${{ github.workspace }}/ /tests/www/api-test/
+          rsync -a --exclude='.git' $(pwd)/ /tests/www/api-test/
           cp /tests/www/api-test/htaccess.txt /tests/www/api-test/.htaccess
           chown -R www-data /tests/www/api-test/
           a2enmod rewrite
@@ -490,20 +490,20 @@ jobs:
         run: |
           npm install -g @usebruno/cli
       - name: Create test-results directory
-        run: mkdir -p ${{ github.workspace }}/test-results
+        run: mkdir -p $GITHUB_WORKSPACE/tests/test-results
       - name: Run Bruno API tests
         working-directory: ${{ github.workspace }}/tests/api-endpoints/bruno/joomla-web-services-api
         run: |
           bru run . -r --noproxy \
             --env-var base_url="http://localhost/api-test/api/index.php" \
             --env-var api_key="testtoken" \
-            --reporter-html "${{ github.workspace }}/test-results/bruno-results.html"
+            --reporter-html "$GITHUB_WORKSPACE/test-results/bruno-results.html"
       - name: Archive API test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: api-test-output-${{ github.run_id }}
-          path: ${{ github.workspace }}/test-results/bruno-results.html
+          path: $GITHUB_WORKSPACE/tests/test-results/bruno-results.html
           if-no-files-found: ignore
     services:
       mysql:
