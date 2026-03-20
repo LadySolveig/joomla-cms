@@ -479,6 +479,8 @@ jobs:
           $stmt->execute([$uid, 'joomlatoken.token',   '"testtoken"', 1]);
           $stmt->execute([$uid, 'joomlatoken.enabled', '"1"',         2]);
           PHPEOF
+      - name: Fix file ownership for Apache
+        run: chown -R www-data /tests/www/api-test/
       - name: Checkout API Endpoints tests
         uses: actions/checkout@v4
         with:
@@ -501,7 +503,7 @@ jobs:
           bru run . -r --noproxy \
             --env-var base_url="http://localhost/api-test/api/index.php" \
             --env-var api_key="testtoken" \
-            --reporter-html "$GITHUB_WORKSPACE/test-results/bruno-results.html"
+            --reporter-html "$GITHUB_WORKSPACE/tests/test-results/bruno-results.html"
       - name: Archive API test results
         uses: actions/upload-artifact@v4
         if: always()
