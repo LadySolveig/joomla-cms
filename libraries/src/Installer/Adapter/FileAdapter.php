@@ -497,6 +497,10 @@ class FileAdapter extends InstallerAdapter
         $packagePath = $this->parent->getPath('source');
         $jRootPath   = Path::clean(JPATH_ROOT);
 
+        if (!isset($this->getManifest()->fileset->files)) {
+            return false;
+        }
+
         // Loop through all elements and get list of files and folders
         foreach ($this->getManifest()->fileset->files as $eFiles) {
             // Check if the element is files element
