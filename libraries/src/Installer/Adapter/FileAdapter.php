@@ -497,7 +497,7 @@ class FileAdapter extends InstallerAdapter
         $packagePath = $this->parent->getPath('source');
         $jRootPath   = Path::clean(JPATH_ROOT);
 
-        if (!isset($this->getManifest()->fileset->files)) {
+        if (!isset($this->getManifest()->fileset->files) || empty($this->getManifest()->fileset->files)) {
             return false;
         }
 
