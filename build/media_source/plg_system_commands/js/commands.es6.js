@@ -61,14 +61,15 @@ const initCommandsModal = () => {
       const link = createEl('a', item.title);
       link.href = item.link;
       li.appendChild(link);
+      resultList.appendChild(li);
 
       if (item.quicktask) {
-        const quicktaskLink = createEl('a', item.quicktask.title, ['ms-2', 'small']);
+        const quicktaskLi = createEl('li', '', ['list-group-item']);
+        const quicktaskLink = createEl('a', item.quicktask.title);
         quicktaskLink.href = item.quicktask.link;
-        li.appendChild(quicktaskLink);
+        quicktaskLi.appendChild(quicktaskLink);
+        resultList.appendChild(quicktaskLi);
       }
-
-      resultList.appendChild(li);
     });
   };
 

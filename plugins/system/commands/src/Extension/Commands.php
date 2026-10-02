@@ -15,6 +15,7 @@ use Joomla\CMS\Event\Plugin\AjaxEvent;
 use Joomla\CMS\Event\Plugin\System\Commands as CommandsEvent;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Menu\AdministratorMenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
@@ -157,16 +158,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $items = [];
 
-        /**
-         * Things to consider for next time
-         * - Headings should become prefix of the items
-         * - each menu item has only two (three) levels
-         * |- Heading
-         * |- Item | Dashboard and Quickicon
-         *
-         * e.g. Contacts: Add category
-         * e.g. Content: Add article
-         */
         if ($adminMenuItem->hasChildren()) {
             $items = $this->normalizeMenuItems($adminMenuItem);
         }
@@ -185,7 +176,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $items = $searchEvent->getItems();
 
         $items = array_filter($items, function ($item) use ($search) {
-            return strpos($item['title'], $search) !== false;
+            return mb_stripos($item['title'], $search) !== false;
         });
 
         usort($items, function ($a, $b) {
@@ -202,9 +193,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     /**
      * Normalize menu items
      *
+     * @param   AdministratorMenuItem  $parent   The menu item to collect children from.
+     * @param   string                 $heading  The enclosing heading's translated title, used as a
+     *                                           "Heading: Item" prefix (e.g. "Content: Article Manager").
+     *
      * @return array
      */
-    protected function normalizeMenuItems($parent): array
+    protected function normalizeMenuItems($parent, string $heading = ''): array
     {
         $menuItems = [];
 
@@ -216,30 +211,34 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         foreach ($children as $item) {
 
-            if ($item->type === 'component' && !in_array($item->type, ['heading', 'separator'])) {
+            if ($item->type === 'component') {
+                $title = Text::_($item->title);
 
                 $menuItems[] = [
-                    'title' => Text::_($item->title),
-                    'link'  => Route::_($item->link),
+                    'title' => $heading !== '' ? $heading . ': ' . $title : $title,
+                    // $xhtml = false: this URL is sent as JSON and assigned via link.href in JS,
+                    // not embedded in server-rendered HTML, so it must not be &amp;-escaped.
+                    'link'  => Route::_($item->link, false),
                 ];
 
-                if ($item->getParams()->get('menu-quicktask')) {
-                    $menuItems[count($menuItems) - 1]['quicktask'] = [
-                        'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
-                        'link'  => Route::_($item->getParams()->get('menu-quicktask')),
-                    ];
-                }
+                $quicktaskLink = $item->getParams()->get('menu-quicktask');
 
-                /* if ($item->getParams()->get('menu-quicktask')) {
-                    $menuItems[] = [
-                        'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
-                        'link'  => Route::_($item->getParams()->get('menu-quicktask')),
-                    ];
-                }*/
+                if ($quicktaskLink) {
+                    $permission = $item->getParams()->get('menu-quicktask-permission');
+                    $scope      = $item->scope !== 'default' ? $item->scope : null;
+
+                    if (!$permission || $this->getApplication()->getIdentity()->authorise($permission, $scope)) {
+                        $menuItems[count($menuItems) - 1]['quicktask'] = [
+                            'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
+                            'link'  => Route::_($quicktaskLink, false),
+                        ];
+                    }
+                }
             }
 
             if ($item->hasChildren()) {
-                $subMenu = $this->normalizeMenuItems($item);
+                $childHeading = $item->type === 'heading' ? Text::_($item->title) : $heading;
+                $subMenu      = $this->normalizeMenuItems($item, $childHeading);
 
                 $menuItems = array_merge($menuItems, $subMenu);
             }
