@@ -99,6 +99,11 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             ['hotkeysjs', 'joomla.dialog']
         );
 
+        $wa->registerAndUseStyle(
+            'plg_system_commands.commands',
+            'plg_system_commands/commands.min.css'
+        );
+
         $openHotKey = $this->params->get('openhotkey', 'cmd+alt+k,ctrl+alt+k');
 
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
@@ -153,6 +158,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             $event->updateEventResult($response);
             return;
         } */
+
+        // Needed for mod_menu's own strings (e.g. MOD_MENU_COM_ACTIONLOGS).
+        $app->getLanguage()->load('mod_menu', JPATH_ADMINISTRATOR);
 
         $adminMenuItem = MenusHelper::loadPreset('default');
 

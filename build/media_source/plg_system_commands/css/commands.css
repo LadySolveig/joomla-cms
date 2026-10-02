@@ -1,0 +1,15 @@
+/**
+ * @copyright  (C) 2026 Open Source Matters, Inc. <https://www.joomla.org>
+ * @license    GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+/* Anchor near the top instead of centering; cap height so long lists scroll. */
+joomla-dialog.command-palette-dialog dialog {
+  margin-block-start: 10vh;
+  margin-block-end: auto;
+  max-block-size: 70vh;
+}
+
+joomla-dialog.command-palette-dialog .joomla-dialog-body {
+  overflow-y: auto;
+}

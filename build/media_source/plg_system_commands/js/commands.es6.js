@@ -1,5 +1,5 @@
 /**
- * @copyright  (C) 2024 Open Source Matters, Inc. <https://www.joomla.org>
+ * @copyright  (C) 2026 Open Source Matters, Inc. <https://www.joomla.org>
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -43,11 +43,15 @@ const initCommandsModal = () => {
 
   // Default template for the popup
   const popupTemplate = `<div class="joomla-dialog-container">
+  <header class="joomla-dialog-header"></header>
   <section class="joomla-dialog-body"></section>
   </div>`;
 
   const searchInput = content.querySelector('#command_search');
+  const closeButton = content.querySelector('#command-dialog-close');
   const resultList = content.querySelector('#command-dialog-search-result');
+
+  closeButton.addEventListener('click', () => commandsDialog.close());
 
   const renderItems = (items) => {
     resultList.replaceChildren();
@@ -106,9 +110,11 @@ const initCommandsModal = () => {
   commandsDialog = new JoomlaDialog({
     popupTemplate: popupTemplate,
     popupContent: content,
-    popupButtons : [
-      { label: 'Search', className: 'd-none' }
-    ],
+    // Suppress the library's own auto-added header close button: we provide our own,
+    // next to the search input, instead. A non-empty popupButtons list is the only way
+    // to opt out of the default (see joomla-dialog.w-c.es6.js renderLayout()).
+    popupButtons: [{ label: '', className: 'd-none', location: 'header' }],
+    className: 'command-palette-dialog',
     width: '600px',
     height: 'fit-content',
     cancelable: true,
@@ -118,7 +124,9 @@ const initCommandsModal = () => {
 };
 
 const showCommandsModal = () => {
-  initCommandsModal().show();
+  const dialog = initCommandsModal();
+  dialog.show();
+  dialog.querySelector('#command_search')?.focus();
 };
 
 document.addEventListener('DOMContentLoaded', () => {

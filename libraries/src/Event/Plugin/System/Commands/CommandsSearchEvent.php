@@ -79,7 +79,10 @@ class CommandsSearchEvent extends AbstractImmutableEvent
     }
 
     /**
-     * Set the list of searchable items.
+     * Replace the list of searchable items.
+     *
+     * Not named setItems(): that collides with AbstractEvent's automatic setArgument() hook
+     * and would null the value on construction (see core's AjaxEvent::updateEventResult()).
      *
      * @param   array  $items  The items.
      *
@@ -87,7 +90,7 @@ class CommandsSearchEvent extends AbstractImmutableEvent
      *
      * @since   __DEPLOY_VERSION__
      */
-    public function setItems(array $items): void
+    public function updateItems(array $items): void
     {
         $this->arguments['items'] = $items;
     }
