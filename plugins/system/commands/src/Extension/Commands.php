@@ -12,8 +12,8 @@ namespace Joomla\Plugin\System\Commands\Extension;
 
 use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Event\GenericEvent;
 use Joomla\CMS\Event\Plugin\AjaxEvent;
+use Joomla\CMS\Event\Plugin\System\Commands;
 use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
@@ -22,7 +22,6 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
-use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Module\Submenu\Administrator\Menu\Menu;
 
@@ -93,18 +92,11 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $commands = [];
 
-        // @todo: Implement unique event
-        $event = new GenericEvent(
-            'onLoadCommands',
-            [
-                'context'  => $context,
-                'commands' => $commands,
-            ]
-        );
+        $event = new Commands\LoadCommandsEvent('onLoadCommands', ['context' => $context, 'commands' => $commands]);
 
         $this->getDispatcher()->dispatch('onLoadCommands', $event);
 
-        $commands = $event->getArgument('commands');
+        $commands = $event->getCommands();
 
         // Text::script('PLG_SYSTEM_SHORTCUT_OVERVIEW_HINT');
         Text::script('PLG_SYSTEM_COMMANDS_OVERVIEW_TITLE');
@@ -136,15 +128,15 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     /**
      * Add default commands and shortkeys to the document
      *
-     * @param   Event  $event  The event
+     * @param   Commands\LoadCommandsEvent  $event  The event
      *
      * @return  void
      *
      * @since   __DEPLOY_VERSION__
      */
-    public function addCommands(Event $event)
+    public function addCommands(Commands\LoadCommandsEvent $event)
     {
-        $commands = $event->getArgument('commands', []);
+        $commands = $event->getCommands();
 
         $commands = array_merge(
             $commands,
@@ -161,7 +153,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             ]
         );
 
-        $event->setArgument('commands', $commands);
+        $event->setCommands($commands);
     }
 
     /**
@@ -180,9 +172,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
     /**
      * Ajax command to load command items
-     *
-     * onCommandsSearch listeners run inside the CSRF/core.login.admin gate already enforced below -
-     * they must not assume any stronger privilege is guaranteed.
      *
      * @param   AjaxEvent  $event  The event object
      * @return  void
@@ -237,7 +226,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             $items = $this->normalizeMenuItems($adminMenuItem);
         }
 
-        $searchEvent = new GenericEvent(
+        $searchEvent = new Commands\CommandsSearchEvent(
             'onCommandsSearch',
             [
                 'context' => $app->getInput()->get('option') . '.' . $app->getInput()->get('view'),
@@ -248,7 +237,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $this->getDispatcher()->dispatch('onCommandsSearch', $searchEvent);
 
-        $items = $searchEvent->getArgument('items', $items);
+        $items = $searchEvent->getItems();
 
         $items = array_filter($items, function ($item) use ($search) {
             return strpos($item['title'], $search) !== false;
