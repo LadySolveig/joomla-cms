@@ -82,7 +82,7 @@ const startupShortcuts = () => {
     // Leave the scope after x milliseconds
     setTimeout(() => {
       hotkeys.setScope(false);
-    }, Joomla.getOptions('plg_system_shortcut.timeout', 2000));
+    }, Joomla.getOptions('plg_system_commands.timeout', 2000));
   });
 };
 
