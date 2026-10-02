@@ -25,14 +25,12 @@
 		<fields name="params">
 			<fieldset name="basic">
 				<field
-					name="timeout"
-					type="number"
-					label="PLG_SYSTEM_COMMANDS_TIMEOUT_LABEL"
-					description="PLG_SYSTEM_COMMANDS_TIMEOUT_DESC"
+					name="openhotkey"
+					type="text"
+					label="PLG_SYSTEM_COMMANDS_OPENHOTKEY_LABEL"
+					description="PLG_SYSTEM_COMMANDS_OPENHOTKEY_DESC"
 					required="true"
-					start="1"
-					step="1"
-					default="2000"
+					default="cmd+alt+k,ctrl+alt+k"
 				/>
 			</fieldset>
 		</fields>

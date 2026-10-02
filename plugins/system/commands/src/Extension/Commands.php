@@ -11,16 +11,13 @@
 namespace Joomla\Plugin\System\Commands\Extension;
 
 use Joomla\CMS\Access\Exception\NotAllowed;
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\Plugin\AjaxEvent;
 use Joomla\CMS\Event\Plugin\System\Commands as CommandsEvent;
-use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
-use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Module\Submenu\Administrator\Menu\Menu;
@@ -66,7 +63,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     {
         return [
             'onBeforeCompileHead'      => 'initialize',
-            'onLoadCommands'           => 'addCommands',
             'onAfterRender'            => 'onAfterRender',
             'onAjaxCommands'           => 'onAjaxCommands',
         ];
@@ -88,20 +84,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         // Load translations
         $this->loadLanguage();
 
-        $context = $this->getApplication()->getInput()->get('option') . '.' . $this->getApplication()->getInput()->get('view');
-
-        $commands = [];
-
-        $event = new CommandsEvent\LoadCommandsEvent('onLoadCommands', ['context' => $context, 'commands' => $commands]);
-
-        $this->getDispatcher()->dispatch('onLoadCommands', $event);
-
-        $commands = $event->getCommands();
-
-        // Text::script('PLG_SYSTEM_SHORTCUT_OVERVIEW_HINT');
-        Text::script('PLG_SYSTEM_COMMANDS_OVERVIEW_TITLE');
-        // Text::script('PLG_SYSTEM_SHORTCUT_OVERVIEW_DESC');
-        // Text::script('PLG_SYSTEM_SHORTCUT_THEN');
         Text::script('JCLOSE');
         Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
 
@@ -117,44 +99,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             ['hotkeysjs', 'joomla.dialog']
         );
 
-        $timeout = $this->params->get('timeout', 2000);
-
         $openHotKey = $this->params->get('openhotkey', 'cmd+alt+k,ctrl+alt+k');
 
-        $document->addScriptOptions('plg_system_commands.commands', $commands);
-        $document->addScriptOptions('plg_system_commands.timeout', $timeout);
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
-    }
-
-    /**
-     * Add default commands and shortkeys to the document
-     *
-     * @param   CommandsEvent\LoadCommandsEvent  $event  The event
-     *
-     * @return  void
-     *
-     * @since   __DEPLOY_VERSION__
-     */
-    public function addCommands(CommandsEvent\LoadCommandsEvent $event)
-    {
-        $commands = $event->getCommands();
-
-        $commands = array_merge(
-            $commands,
-            [
-                'applyKey'   => (object) ['selector' => 'joomla-toolbar-button .button-apply', 'shortcut' => 'A', 'title' => $this->getApplication()->getLanguage()->_('JAPPLY')],
-                'saveKey'    => (object) ['selector' => 'joomla-toolbar-button .button-save', 'shortcut' => 'S', 'title' => $this->getApplication()->getLanguage()->_('JTOOLBAR_SAVE')],
-                'cancelKey'  => (object) ['selector' => 'joomla-toolbar-button .button-cancel', 'shortcut' => 'Q', 'title' => $this->getApplication()->getLanguage()->_('JCANCEL')],
-                'newKey'     => (object) ['selector' => 'joomla-toolbar-button .button-new', 'shortcut' => 'N', 'title' => $this->getApplication()->getLanguage()->_('JTOOLBAR_NEW')],
-                'searchKey'  => (object) ['selector' => 'input[placeholder=' . $this->getApplication()->getLanguage()->_('JSEARCH_FILTER') . ']', 'shortcut' => 'F', 'title' => $this->getApplication()->getLanguage()->_('JSEARCH_FILTER')],
-                'optionKey'  => (object) ['selector' => 'joomla-toolbar-button .button-options', 'shortcut' => 'O', 'title' => $this->getApplication()->getLanguage()->_('JOPTIONS')],
-                'helpKey'    => (object) ['selector' => 'joomla-toolbar-button .button-help', 'shortcut' => 'H', 'title' => $this->getApplication()->getLanguage()->_('JHELP')],
-                'toggleMenu' => (object) ['selector' => '#menu-collapse', 'shortcut' => 'M', 'title' => $this->getApplication()->getLanguage()->_('JTOGGLE_SIDEBAR_MENU')],
-                'dashboard'  => (object) ['selector' => (string) new Uri(Route::_('index.php?')), 'shortcut' => 'D', 'title' => $this->getApplication()->getLanguage()->_('JHOMEDASHBOARD')],
-            ]
-        );
-
-        $event->setCommands($commands);
     }
 
     /**
