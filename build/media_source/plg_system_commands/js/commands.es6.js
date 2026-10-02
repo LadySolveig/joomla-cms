@@ -160,13 +160,7 @@ const initCommandsModal = (options) => {
   });*/
 
   // Create the content for the dialog
-  /* const intro = createEl('p');
-  intro.innerHTML = Joomla.sanitizeHtml(Joomla.Text._('PLG_SYSTEM_SHORTCUT_OVERVIEW_DESC'), { kbd: '*' });
-  const info = createEl('div');
-  info.appendChild(dl); */
   const content = createEl('div', '', ['p-3']);
-  // content.appendChild(intro);
-  // content.appendChild(info);
 
   // Default template for dialog search
   const template = document.querySelector('#command-dialog-search');
@@ -177,48 +171,62 @@ const initCommandsModal = (options) => {
   <section class="joomla-dialog-body"></section>
   </div>`;
 
-  // url for ajax call
-  const baseUrl = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
+  const searchInput = content.querySelector('#command_search');
+  const resultList = content.querySelector('#command-dialog-search-result');
 
-  console.log(baseUrl);
+  const renderItems = (items) => {
+    resultList.replaceChildren();
 
-  /* alerts[0].querySelector('.eosnotify-snooze-btn').addEventListener('click', () => fetch(url, { headers: { 'X-CSRF-Token': Joomla.getOptions('csrf.token') || '' } })
-      .then((response) => {
-        if (response.ok) {
-          alerts[0].closest('joomla-alert').close();
+    items.forEach((item) => {
+      const li = createEl('li', '', ['list-group-item']);
+      const link = createEl('a', item.title);
+      link.href = item.link;
+      li.appendChild(link);
+
+      if (item.quicktask) {
+        const quicktaskLink = createEl('a', item.quicktask.title, ['ms-2', 'small']);
+        quicktaskLink.href = item.quicktask.link;
+        li.appendChild(quicktaskLink);
+      }
+
+      resultList.appendChild(li);
+    });
+  };
+
+  const searchCommands = (search) => {
+    const url = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
+    url.searchParams.set('search', search);
+
+    Joomla.request({
+      url: `${url}`,
+      method: 'GET',
+      perform: true,
+      onSuccess: (resp) => {
+        let response = {};
+
+        try {
+          response = JSON.parse(resp);
+        } catch (e) {
+          return;
         }
-      })); */
-      // url: `${baseUrl}&type=${type}&plugin=SampledataApplyStep${step}&step=${step}`,
-  Joomla.request({
-    url: `${baseUrl}`,
-    method: 'GET',
-    perform: true,
-    onSuccess: (resp) => {
-      console.log('successfull response');
-      let response = {};
 
-      try {
-        response = JSON.parse(resp);
-      } catch (e) {
-        // Joomla.renderMessages({ error: [Joomla.Text._('MOD_SAMPLEDATA_INVALID_RESPONSE')] }, `.sampledata-steps-${type}-${step}`);
-        return;
-      }
+        if (response.success && response.data && response.data.items) {
+          renderItems(response.data.items);
+        }
+      },
+      onError: () => {
+        Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+      },
+    });
+  };
 
-      if (response.success && response.data && response.data.length > 0) {
-        console.log('successfull response');
-        console.log(response.data);
-      }
-    },
-    onError: () => {
-      Joomla.renderMessages({ error: [Joomla.Text._('MOD_SAMPLEDATA_ERROR_RESPONSE')] });
-      window.scroll({
-        top: 0,
-        left: 0,
-        behavior: 'smooth',
-      });
-      // SampleData.inProgress = false;
-    },
+  let searchTimeout;
+  searchInput.addEventListener('input', (event) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => searchCommands(event.target.value), 300);
   });
+
+  searchCommands('');
 
   commandsDialog = new JoomlaDialog({
     // textHeader: Joomla.Text._('PLG_SYSTEM_COMMANDS_OVERVIEW_TITLE'),

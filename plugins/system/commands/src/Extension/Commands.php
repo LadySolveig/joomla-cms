@@ -103,6 +103,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         // Text::script('PLG_SYSTEM_SHORTCUT_OVERVIEW_DESC');
         // Text::script('PLG_SYSTEM_SHORTCUT_THEN');
         Text::script('JCLOSE');
+        Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
 
         $document = $this->getApplication()->getDocument();
         $wa       = $document->getWebAssetManager();
