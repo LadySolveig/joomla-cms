@@ -97,8 +97,8 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $event = new GenericEvent(
             'onLoadCommands',
             [
-                'context'   => $context,
-                'onLoadCommands' => $commands,
+                'context'  => $context,
+                'commands' => $commands,
             ]
         );
 
