@@ -181,6 +181,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     /**
      * Ajax command to load command items
      *
+     * onCommandsSearch listeners run inside the CSRF/core.login.admin gate already enforced below -
+     * they must not assume any stronger privilege is guaranteed.
+     *
      * @param   AjaxEvent  $event  The event object
      * @return  void
      *
@@ -233,6 +236,19 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         if ($adminMenuItem->hasChildren()) {
             $items = $this->normalizeMenuItems($adminMenuItem);
         }
+
+        $searchEvent = new GenericEvent(
+            'onCommandsSearch',
+            [
+                'context' => $app->getInput()->get('option') . '.' . $app->getInput()->get('view'),
+                'search'  => $search,
+                'items'   => $items,
+            ]
+        );
+
+        $this->getDispatcher()->dispatch('onCommandsSearch', $searchEvent);
+
+        $items = $searchEvent->getArgument('items', $items);
 
         $items = array_filter($items, function ($item) use ($search) {
             return strpos($item['title'], $search) !== false;
