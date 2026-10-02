@@ -192,7 +192,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     public function onAjaxCommands(AjaxEvent $event)
     {
         if (!Session::checkToken('request')) {
-            return;
+            throw new NotAllowed(Text::_('JINVALID_TOKEN'), 403);
         }
 
         /**
