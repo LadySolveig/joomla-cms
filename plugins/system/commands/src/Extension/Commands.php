@@ -90,19 +90,8 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $document = $this->getApplication()->getDocument();
         $wa       = $document->getWebAssetManager();
 
-        // @todo: move to asset.joomla.json
-        $wa->registerAndUseScript(
-            'plg_system_commands.commands',
-            'plg_system_commands/commands.min.js',
-            [],
-            ['type' => 'module'],
-            ['hotkeysjs', 'joomla.dialog']
-        );
-
-        $wa->registerAndUseStyle(
-            'plg_system_commands.commands',
-            'plg_system_commands/commands.min.css'
-        );
+        $wa->getRegistry()->addExtensionRegistryFile('plg_system_commands');
+        $wa->usePreset('plg_system_commands.commands');
 
         $openHotKey = $this->params->get('openhotkey', 'cmd+alt+k,ctrl+alt+k');
 

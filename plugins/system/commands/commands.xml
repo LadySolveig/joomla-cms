@@ -12,6 +12,8 @@
 	<namespace path="src">Joomla\Plugin\System\Commands</namespace>
 	<media destination="plg_system_commands" folder="media">
 		<folder>js</folder>
+		<folder>css</folder>
+		<filename>joomla.asset.json</filename>
 	</media>
 	<files>
 		<folder plugin="commands">services</folder>
