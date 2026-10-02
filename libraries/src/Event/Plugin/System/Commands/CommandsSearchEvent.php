@@ -19,7 +19,7 @@ use Joomla\CMS\Event\AbstractImmutableEvent;
  * Concrete event class for the onCommandsSearch event.
  *
  * Listeners run inside the CSRF/core.login.admin gate already enforced by onAjaxCommands() - they
- * must not assume any stronger privilege (e.g. core.admin) is guaranteed.
+ * must not assume any stronger privilege is guaranteed.
  *
  * @since  __DEPLOY_VERSION__
  */

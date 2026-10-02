@@ -13,8 +13,7 @@ namespace Joomla\Plugin\System\Commands\Extension;
 use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\Plugin\AjaxEvent;
-use Joomla\CMS\Event\Plugin\System\Commands\CommandsSearchEvent;
-use Joomla\CMS\Event\Plugin\System\Commands\LoadCommandsEvent;
+use Joomla\CMS\Event\Plugin\System\Commands as CommandsEvent;
 use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
@@ -93,7 +92,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $commands = [];
 
-        $event = new LoadCommandsEvent('onLoadCommands', ['context' => $context, 'commands' => $commands]);
+        $event = new CommandsEvent\LoadCommandsEvent('onLoadCommands', ['context' => $context, 'commands' => $commands]);
 
         $this->getDispatcher()->dispatch('onLoadCommands', $event);
 
@@ -129,13 +128,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     /**
      * Add default commands and shortkeys to the document
      *
-     * @param   LoadCommandsEvent  $event  The event
+     * @param   CommandsEvent\LoadCommandsEvent  $event  The event
      *
      * @return  void
      *
      * @since   __DEPLOY_VERSION__
      */
-    public function addCommands(LoadCommandsEvent $event)
+    public function addCommands(CommandsEvent\LoadCommandsEvent $event)
     {
         $commands = $event->getCommands();
 
@@ -227,7 +226,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             $items = $this->normalizeMenuItems($adminMenuItem);
         }
 
-        $searchEvent = new CommandsSearchEvent(
+        $searchEvent = new CommandsEvent\CommandsSearchEvent(
             'onCommandsSearch',
             [
                 'context' => $app->getInput()->get('option') . '.' . $app->getInput()->get('view'),
