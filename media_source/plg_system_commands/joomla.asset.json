@@ -11,7 +11,8 @@
       "uri": "plg_system_commands/commands.min.js",
       "dependencies": [
         "hotkeysjs",
-        "joomla.dialog"
+        "joomla.dialog",
+        "messages"
       ],
       "attributes": {
         "type": "module"

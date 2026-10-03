@@ -51,6 +51,7 @@ const initCommandsModal = () => {
   const closeButton = content.querySelector('#command-dialog-close');
   const resultList = content.querySelector('#command-dialog-search-result');
   const noResults = content.querySelector('#command-dialog-no-results');
+  const errorContainer = content.querySelector('#command-dialog-error');
   const status = content.querySelector('#command-dialog-status');
   const hint = content.querySelector('#command-dialog-hint');
 
@@ -107,6 +108,7 @@ const initCommandsModal = () => {
 
   const renderItems = (items, statusText) => {
     resultList.replaceChildren();
+    Joomla.removeMessages(errorContainer);
     noResults.textContent = statusText;
     noResults.hidden = items.length > 0;
     searchInput.setAttribute('aria-expanded', items.length > 0 ? 'true' : 'false');
@@ -134,6 +136,15 @@ const initCommandsModal = () => {
     }, 100);
   };
 
+  // Inside the dialog: the page behind a modal dialog is inert.
+  const showError = (message) => {
+    resultList.replaceChildren();
+    setActive(-1);
+    noResults.hidden = true;
+    searchInput.setAttribute('aria-expanded', 'false');
+    Joomla.renderMessages({ error: [message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] }, errorContainer);
+  };
+
   const searchCommands = (search) => {
     const url = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
     url.searchParams.set('search', search);
@@ -148,16 +159,27 @@ const initCommandsModal = () => {
         try {
           response = JSON.parse(resp);
         } catch (e) {
+          showError();
           return;
         }
 
         if (response.success && response.data && response.data.items) {
           renderItems(response.data.items, response.data.status);
           announce(response.data.status);
+        } else {
+          showError(response.message);
         }
       },
-      onError: () => {
-        Joomla.renderMessages({ error: [Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] });
+      onError: (xhr) => {
+        let message;
+
+        try {
+          ({ message } = JSON.parse(xhr.responseText));
+        } catch (e) {
+          // Not a JSON error response - fall back to the generic message.
+        }
+
+        showError(message);
       },
     });
   };

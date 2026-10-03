@@ -27,5 +27,6 @@ use Joomla\CMS\Language\Text;
     <div class="list-group command-dialog-results" id="command-dialog-search-result" role="listbox" aria-label="<?php echo Text::_('PLG_SYSTEM_COMMANDS_RESULTS_LABEL'); ?>">
     </div>
     <p class="text-muted mb-0" id="command-dialog-no-results" hidden></p>
+    <div id="command-dialog-error"></div>
     <div class="visually-hidden" id="command-dialog-status" role="status"></div>
 </template>
