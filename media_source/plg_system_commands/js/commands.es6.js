@@ -106,6 +106,15 @@ const initCommandsModal = () => {
     resultList.appendChild(option);
   };
 
+  let busy = false;
+  let pendingEnter = false;
+
+  const setBusy = (value) => {
+    busy = value;
+    resultList.setAttribute('aria-busy', value ? 'true' : 'false');
+    resultList.classList.toggle('opacity-50', value);
+  };
+
   const renderItems = (items, statusText) => {
     resultList.replaceChildren();
     Joomla.removeMessages(errorContainer);
@@ -122,6 +131,15 @@ const initCommandsModal = () => {
     });
 
     setActive(0);
+
+    // Enter pressed while searching: open the first result once it is there.
+    const [first] = getOptions();
+
+    if (pendingEnter && first) {
+      window.location.assign(first.href);
+    }
+
+    pendingEnter = false;
   };
 
   // Clear first: screen readers skip a live region update that repeats the same text.
@@ -138,6 +156,7 @@ const initCommandsModal = () => {
 
   // Inside the dialog: the page behind a modal dialog is inert.
   const showError = (message) => {
+    pendingEnter = false;
     resultList.replaceChildren();
     setActive(-1);
     noResults.hidden = true;
@@ -145,7 +164,12 @@ const initCommandsModal = () => {
     Joomla.renderMessages({ error: [message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] }, errorContainer);
   };
 
+  // Responses can arrive out of order; only the latest search may update the list.
+  let latestRequest = 0;
+
   const searchCommands = (search) => {
+    latestRequest += 1;
+    const request = latestRequest;
     const url = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
     url.searchParams.set('search', search);
 
@@ -154,6 +178,11 @@ const initCommandsModal = () => {
       method: 'GET',
       perform: true,
       onSuccess: (resp) => {
+        if (request !== latestRequest) {
+          return;
+        }
+
+        setBusy(false);
         let response = {};
 
         try {
@@ -171,6 +200,11 @@ const initCommandsModal = () => {
         }
       },
       onError: (xhr) => {
+        if (request !== latestRequest) {
+          return;
+        }
+
+        setBusy(false);
         let message;
 
         try {
@@ -185,9 +219,20 @@ const initCommandsModal = () => {
   };
 
   searchInput.addEventListener('keydown', (event) => {
+    if (event.isComposing) {
+      return;
+    }
+
+    // Only plain Enter: a delayed window.open() would be caught by popup blockers.
+    if (busy && event.key === 'Enter') {
+      event.preventDefault();
+      pendingEnter = !event.ctrlKey && !event.metaKey;
+      return;
+    }
+
     const options = getOptions();
 
-    if (event.isComposing || !options.length) {
+    if (!options.length) {
       return;
     }
 
@@ -209,12 +254,14 @@ const initCommandsModal = () => {
 
   let searchTimeout;
   searchInput.addEventListener('input', (event) => {
-    // The list is outdated until the new results arrive - don't let Enter open a stale entry.
     setActive(-1);
+    setBusy(true);
+    pendingEnter = false;
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => searchCommands(event.target.value), 300);
   });
 
+  setBusy(true);
   searchCommands('');
 
   commandsDialog = new JoomlaDialog({
