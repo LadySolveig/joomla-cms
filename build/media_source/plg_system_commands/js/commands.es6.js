@@ -29,6 +29,7 @@ const createEl = (nodeName, text = '', classList = []) => {
 };
 
 let commandsDialog;
+let announce = () => {};
 const initCommandsModal = () => {
   if (commandsDialog) {
     return commandsDialog;
@@ -50,11 +51,15 @@ const initCommandsModal = () => {
   const searchInput = content.querySelector('#command_search');
   const closeButton = content.querySelector('#command-dialog-close');
   const resultList = content.querySelector('#command-dialog-search-result');
+  const noResults = content.querySelector('#command-dialog-no-results');
+  const status = content.querySelector('#command-dialog-status');
 
   closeButton.addEventListener('click', () => commandsDialog.close());
 
-  const renderItems = (items) => {
+  const renderItems = (items, statusText) => {
     resultList.replaceChildren();
+    noResults.textContent = statusText;
+    noResults.hidden = items.length > 0;
 
     items.forEach((item) => {
       const li = createEl('li', '', ['list-group-item']);
@@ -71,6 +76,18 @@ const initCommandsModal = () => {
         resultList.appendChild(quicktaskLi);
       }
     });
+  };
+
+  // Clear first: screen readers skip a live region update that repeats the same text.
+  let lastStatus = '';
+  let announceTimeout;
+  announce = (text = lastStatus) => {
+    lastStatus = text;
+    status.textContent = '';
+    clearTimeout(announceTimeout);
+    announceTimeout = setTimeout(() => {
+      status.textContent = text;
+    }, 100);
   };
 
   const searchCommands = (search) => {
@@ -91,7 +108,8 @@ const initCommandsModal = () => {
         }
 
         if (response.success && response.data && response.data.items) {
-          renderItems(response.data.items);
+          renderItems(response.data.items, response.data.status);
+          announce(response.data.status);
         }
       },
       onError: () => {
@@ -126,6 +144,7 @@ const showCommandsModal = () => {
   const dialog = initCommandsModal();
   dialog.show();
   dialog.querySelector('#command_search')?.focus();
+  announce();
 };
 
 document.addEventListener('DOMContentLoaded', () => {

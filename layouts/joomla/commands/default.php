@@ -23,4 +23,6 @@ use Joomla\CMS\Language\Text;
     <hr>
     <ul class="list-group" id="command-dialog-search-result">
     </ul>
+    <p class="text-muted mb-0" id="command-dialog-no-results" hidden></p>
+    <div class="visually-hidden" id="command-dialog-status" role="status"></div>
 </template>

@@ -206,8 +206,12 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             return strcmp($a['title'], $b['title']);
         });
 
+        // Every rendered link counts, quicktasks included. Built here for correct plural forms.
+        $count = \count($items) + \count(array_filter(array_column($items, 'quicktask')));
+
         $response['success'] = true;
         $response['items'] = $items;
+        $response['status'] = Text::plural('PLG_SYSTEM_COMMANDS_N_RESULTS', $count);
 
         // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
         $event->updateEventResult($response);
