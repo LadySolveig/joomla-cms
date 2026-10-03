@@ -20,7 +20,7 @@ use Joomla\CMS\Language\Text;
             <input type="text" name="command[search]" id="command_search" value="" class="form-control" role="combobox" aria-controls="command-dialog-search-result" aria-expanded="false" aria-autocomplete="list" aria-describedby="command_search-desc" placeholder="<?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_PLACEHOLDER'); ?>" inputmode="search">
             <span class="command-dialog-hint text-muted" id="command-dialog-hint" aria-hidden="true" hidden></span>
         </div>
-        <button type="button" class="btn-close" id="command-dialog-close" aria-label="Close"></button>
+        <button type="button" class="btn-close" id="command-dialog-close" aria-label="<?php echo Text::_('JCLOSE'); ?>"></button>
     </div>
     <p id="command_search-desc" class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_DESC'); ?></p>
     <hr>
