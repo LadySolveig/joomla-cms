@@ -19,9 +19,12 @@ use Joomla\CMS\Menu\AdministratorMenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Module\Quickicon\Administrator\Helper\QuickIconHelper;
 use Joomla\Module\Submenu\Administrator\Menu\Menu;
+use Joomla\Registry\Registry;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -149,6 +152,10 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             return;
         } */
 
+        // This plugin's own strings (e.g. PLG_SYSTEM_COMMANDS_QUICKTASK_NEW) - initialize()'s
+        // loadLanguage() only runs on onBeforeCompileHead, which this AJAX request never fires.
+        $this->loadLanguage();
+
         // Needed for mod_menu's own strings (e.g. MOD_MENU_COM_ACTIONLOGS).
         $app->getLanguage()->load('mod_menu', JPATH_ADMINISTRATOR);
 
@@ -161,6 +168,21 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         if ($adminMenuItem->hasChildren()) {
             $items = $this->normalizeMenuItems($adminMenuItem);
         }
+
+        $items = array_merge($items, $this->getQuickIconItems());
+
+        // Quick icons often link to the exact same screen as an existing menu item
+        // (e.g. Tags/Categories) - keep the first (menu) occurrence of each destination.
+        $seenLinks = [];
+        $items     = array_values(array_filter($items, function ($item) use (&$seenLinks) {
+            if (isset($seenLinks[$item['link']])) {
+                return false;
+            }
+
+            $seenLinks[$item['link']] = true;
+
+            return true;
+        }));
 
         $searchEvent = new CommandsEvent\CommandsSearchEvent(
             'onCommandsSearch',
@@ -194,12 +216,12 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      * Normalize menu items
      *
      * @param   AdministratorMenuItem  $parent   The menu item to collect children from.
-     * @param   string                 $heading  The enclosing heading's translated title, used as a
-     *                                           "Heading: Item" prefix (e.g. "Content: Article Manager").
+     * @param   string                 $context  Translated title of the enclosing heading or
+     *                                           parent component, used as the label prefix.
      *
      * @return array
      */
-    protected function normalizeMenuItems($parent, string $heading = ''): array
+    protected function normalizeMenuItems($parent, string $context = ''): array
     {
         $menuItems = [];
 
@@ -210,14 +232,19 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $children = $parent->getChildren();
 
         foreach ($children as $item) {
+            $title = Text::_($item->title);
+
+            if ($item->type === 'heading' || ($item->type === 'component' && $item->hasChildren())) {
+                $menuItems = array_merge($menuItems, $this->normalizeMenuItems($item, $title));
+
+                continue;
+            }
 
             if ($item->type === 'component') {
-                $title = Text::_($item->title);
+                $prefix = $context ?: (!empty($item->element) ? Text::_(strtoupper($item->element)) : '');
 
                 $menuItems[] = [
-                    'title' => $heading !== '' ? $heading . ': ' . $title : $title,
-                    // $xhtml = false: this URL is sent as JSON and assigned via link.href in JS,
-                    // not embedded in server-rendered HTML, so it must not be &amp;-escaped.
+                    'title' => $prefix !== '' && $prefix !== $title ? $prefix . ': ' . $title : $title,
                     'link'  => Route::_($item->link, false),
                 ];
 
@@ -228,8 +255,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
                     $scope      = $item->scope !== 'default' ? $item->scope : null;
 
                     if (!$permission || $this->getApplication()->getIdentity()->authorise($permission, $scope)) {
+                        $quicktaskTitleKey = $item->getParams()->get('menu-quicktask-title');
+                        $quicktaskTitle    = $quicktaskTitleKey
+                            ? Text::_($quicktaskTitleKey)
+                            : Text::sprintf('PLG_SYSTEM_COMMANDS_QUICKTASK_NEW', $title);
+
                         $menuItems[count($menuItems) - 1]['quicktask'] = [
-                            'title' => Text::_($item->getParams()->get('menu-quicktask-title')),
+                            'title' => $prefix !== '' ? $prefix . ': ' . $quicktaskTitle : $quicktaskTitle,
                             'link'  => Route::_($quicktaskLink, false),
                         ];
                     }
@@ -237,14 +269,141 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             }
 
             if ($item->hasChildren()) {
-                $childHeading = $item->type === 'heading' ? Text::_($item->title) : $heading;
-                $subMenu      = $this->normalizeMenuItems($item, $childHeading);
-
-                $menuItems = array_merge($menuItems, $subMenu);
+                $menuItems = array_merge($menuItems, $this->normalizeMenuItems($item, $context));
             }
         }
 
         return $menuItems;
+    }
+
+    /**
+     * Collect mod_quickicon's dashboard buttons as palette items.
+     *
+     * All "show_*" flags are enabled: they are display preferences, not ACL - access is checked
+     * per button instead.
+     *
+     * @return array
+     *
+     * @since __DEPLOY_VERSION__
+     */
+    protected function getQuickIconItems(): array
+    {
+        $app = $this->getApplication();
+
+        // Read the flags from the module's manifest so new core buttons show up without changes here.
+        $manifest = simplexml_load_file(JPATH_ADMINISTRATOR . '/modules/mod_quickicon/mod_quickicon.xml');
+        $flags    = $manifest ? array_map('strval', $manifest->xpath('//field[starts-with(@name, "show_")]/@name') ?: []) : [];
+
+        // 1, not 2: "show with count" would only add an ajaxurl the palette doesn't use.
+        $buttons = (new QuickIconHelper())->getButtons(new Registry(array_fill_keys($flags, 1)), $app);
+
+        $items = [];
+
+        foreach ($buttons as $button) {
+            $name = $button['name'] ?? $button['text'] ?? null;
+            $link = $button['link'] ?? null;
+
+            if (!$name || !$link) {
+                continue;
+            }
+
+            if (!$this->isQuickIconAllowed($button['access'] ?? true)) {
+                continue;
+            }
+
+            $link   = str_replace('&amp;', '&', $link);
+            $title  = Text::_($name);
+            $prefix = $this->getQuickIconPrefix($link, $title);
+
+            $item = [
+                'title' => $prefix !== '' ? $prefix . ': ' . $title : $title,
+                'link'  => $link,
+            ];
+
+            if (!empty($button['linkadd'])) {
+                $quicktaskTitle = Text::_($name . '_ADD');
+
+                $item['quicktask'] = [
+                    'title' => $prefix !== '' ? $prefix . ': ' . $quicktaskTitle : $quicktaskTitle,
+                    'link'  => str_replace('&amp;', '&', $button['linkadd']),
+                ];
+            }
+
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Label prefix for a quick icon: the linked component's name, plus the client if any.
+     *
+     * @param   string  $link   The quick icon's link, not &amp;-escaped.
+     * @param   string  $title  The quick icon's translated title.
+     *
+     * @return  string
+     *
+     * @since __DEPLOY_VERSION__
+     */
+    private function getQuickIconPrefix(string $link, string $title): string
+    {
+        $uri    = new Uri($link);
+        $option = $uri->getVar('option');
+
+        if (!$option) {
+            return '';
+        }
+
+        $language = $this->getApplication()->getLanguage();
+        $language->load($option . '.sys', JPATH_ADMINISTRATOR)
+            || $language->load($option . '.sys', JPATH_ADMINISTRATOR . '/components/' . $option);
+
+        // No translated component name (e.g. a third-party icon without a .sys file) - no prefix
+        // rather than a raw COM_FOO key.
+        if (!$language->hasKey(strtoupper($option))) {
+            return '';
+        }
+
+        $component = Text::_(strtoupper($option));
+
+        $client = match ($uri->getVar('client_id')) {
+            '0'     => Text::_('JSITE'),
+            '1'     => Text::_('JADMINISTRATOR'),
+            default => '',
+        };
+
+        if ($client !== '') {
+            return $component . ' (' . $client . ')';
+        }
+
+        return mb_stripos($title, $component) === false ? $component : '';
+    }
+
+    /**
+     * Check a quick icon button's 'access' value the same way
+     * \Joomla\CMS\HTML\Helpers\Icons::button() does.
+     *
+     * @param   array|bool  $access  The button's access value.
+     *
+     * @return  bool
+     *
+     * @since __DEPLOY_VERSION__
+     */
+    private function isQuickIconAllowed($access): bool
+    {
+        if (\is_bool($access)) {
+            return $access;
+        }
+
+        $user = $this->getApplication()->getIdentity();
+
+        for ($i = 0, $n = \count($access); $i < $n; $i += 2) {
+            if (!$user->authorise($access[$i], $access[$i + 1] ?? null)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
