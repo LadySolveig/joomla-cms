@@ -10,12 +10,16 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
+
 ?>
 <template id="command-dialog-search">
     <div class="command-dialog-search d-flex align-items-center gap-2">
-        <input type="text" name="command[search]" id="command_search" value="" class="form-control" aria-describedby="command_search-desc" placeholder="Search" inputmode="search">
+        <label for="command_search" class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_LABEL'); ?></label>
+        <input type="text" name="command[search]" id="command_search" value="" class="form-control" aria-describedby="command_search-desc" placeholder="<?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_PLACEHOLDER'); ?>" inputmode="search">
         <button type="button" class="btn-close" id="command-dialog-close" aria-label="Close"></button>
     </div>
+    <p id="command_search-desc" class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_DESC'); ?></p>
     <hr>
     <ul class="list-group" id="command-dialog-search-result">
     </ul>
