@@ -36,7 +36,7 @@ const initCommandsModal = () => {
   }
 
   // Create the content for the dialog
-  const content = createEl('div', '', ['p-3']);
+  const content = createEl('div', '', ['p-3', 'command-dialog-content']);
 
   // Default template for dialog search
   const template = document.querySelector('#command-dialog-search');
@@ -53,29 +53,74 @@ const initCommandsModal = () => {
   const resultList = content.querySelector('#command-dialog-search-result');
   const noResults = content.querySelector('#command-dialog-no-results');
   const status = content.querySelector('#command-dialog-status');
+  const hint = content.querySelector('#command-dialog-hint');
 
   closeButton.addEventListener('click', () => commandsDialog.close());
+
+  // Combobox pattern: focus stays in the input, aria-activedescendant points to the selected option.
+  let activeIndex = -1;
+
+  const getOptions = () => [...resultList.querySelectorAll('[role="option"]')];
+
+  const setActive = (index) => {
+    const options = getOptions();
+
+    options.forEach((option, i) => {
+      option.setAttribute('aria-selected', i === index ? 'true' : 'false');
+    });
+
+    activeIndex = options[index] ? index : -1;
+
+    // Visual only: screen readers get the option through aria-activedescendant.
+    hint.hidden = activeIndex === -1;
+    hint.textContent = activeIndex === -1 ? '' : `↵ ${options[activeIndex].textContent}`;
+    hint.parentElement.classList.toggle('has-hint', activeIndex !== -1);
+
+    if (activeIndex === -1) {
+      searchInput.removeAttribute('aria-activedescendant');
+      return;
+    }
+
+    searchInput.setAttribute('aria-activedescendant', options[activeIndex].id);
+
+    // Scroll only the list: scrollIntoView() would also scroll the dialog and move the search row away.
+    const option = options[activeIndex];
+    const top = option.offsetTop;
+
+    if (top < resultList.scrollTop) {
+      resultList.scrollTop = top;
+    } else if (top + option.offsetHeight > resultList.scrollTop + resultList.clientHeight) {
+      resultList.scrollTop = top + option.offsetHeight - resultList.clientHeight;
+    }
+  };
+
+  // The link itself is the option: no interactive element nested inside an option, and mouse
+  // users keep middle-click and "open in new tab".
+  const createOption = (title, href) => {
+    const option = createEl('a', title, ['list-group-item', 'list-group-item-action']);
+    option.id = `command-option-${resultList.children.length}`;
+    option.setAttribute('role', 'option');
+    option.href = href;
+    option.tabIndex = -1;
+
+    resultList.appendChild(option);
+  };
 
   const renderItems = (items, statusText) => {
     resultList.replaceChildren();
     noResults.textContent = statusText;
     noResults.hidden = items.length > 0;
+    searchInput.setAttribute('aria-expanded', items.length > 0 ? 'true' : 'false');
 
     items.forEach((item) => {
-      const li = createEl('li', '', ['list-group-item']);
-      const link = createEl('a', item.title);
-      link.href = item.link;
-      li.appendChild(link);
-      resultList.appendChild(li);
+      createOption(item.title, item.link);
 
       if (item.quicktask) {
-        const quicktaskLi = createEl('li', '', ['list-group-item']);
-        const quicktaskLink = createEl('a', item.quicktask.title);
-        quicktaskLink.href = item.quicktask.link;
-        quicktaskLi.appendChild(quicktaskLink);
-        resultList.appendChild(quicktaskLi);
+        createOption(item.quicktask.title, item.quicktask.link);
       }
     });
+
+    setActive(0);
   };
 
   // Clear first: screen readers skip a live region update that repeats the same text.
@@ -118,8 +163,33 @@ const initCommandsModal = () => {
     });
   };
 
+  searchInput.addEventListener('keydown', (event) => {
+    const options = getOptions();
+
+    if (event.isComposing || !options.length) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      setActive((activeIndex + step + options.length) % options.length);
+    } else if (event.key === 'Enter' && activeIndex !== -1) {
+      event.preventDefault();
+      const { href } = options[activeIndex];
+
+      if (event.ctrlKey || event.metaKey) {
+        window.open(href, '_blank', 'noopener');
+      } else {
+        window.location.assign(href);
+      }
+    }
+  });
+
   let searchTimeout;
   searchInput.addEventListener('input', (event) => {
+    // The list is outdated until the new results arrive - don't let Enter open a stale entry.
+    setActive(-1);
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => searchCommands(event.target.value), 300);
   });

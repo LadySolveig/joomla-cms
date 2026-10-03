@@ -16,13 +16,16 @@ use Joomla\CMS\Language\Text;
 <template id="command-dialog-search">
     <div class="command-dialog-search d-flex align-items-center gap-2">
         <label for="command_search" class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_LABEL'); ?></label>
-        <input type="text" name="command[search]" id="command_search" value="" class="form-control" aria-describedby="command_search-desc" placeholder="<?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_PLACEHOLDER'); ?>" inputmode="search">
+        <div class="command-dialog-field position-relative flex-grow-1">
+            <input type="text" name="command[search]" id="command_search" value="" class="form-control" role="combobox" aria-controls="command-dialog-search-result" aria-expanded="false" aria-autocomplete="list" aria-describedby="command_search-desc" placeholder="<?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_PLACEHOLDER'); ?>" inputmode="search">
+            <span class="command-dialog-hint text-muted" id="command-dialog-hint" aria-hidden="true" hidden></span>
+        </div>
         <button type="button" class="btn-close" id="command-dialog-close" aria-label="Close"></button>
     </div>
     <p id="command_search-desc" class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_DESC'); ?></p>
     <hr>
-    <ul class="list-group" id="command-dialog-search-result">
-    </ul>
+    <div class="list-group command-dialog-results" id="command-dialog-search-result" role="listbox" aria-label="<?php echo Text::_('PLG_SYSTEM_COMMANDS_RESULTS_LABEL'); ?>">
+    </div>
     <p class="text-muted mb-0" id="command-dialog-no-results" hidden></p>
     <div class="visually-hidden" id="command-dialog-status" role="status"></div>
 </template>
