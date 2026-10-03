@@ -207,12 +207,20 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         unset($item);
 
-        $items = array_filter($items, function ($item) use ($search) {
-            return mb_stripos($item['group'] . ': ' . $item['title'], $search) !== false;
-        });
+        $matches = fn ($group, $title) => mb_stripos($group . ': ' . $title, $search) !== false;
+        $results = [];
 
-        // Sorted in the browser by the displayed "Group: Title" label.
-        $items = array_values($items);
+        foreach ($items as $item) {
+            if ($matches($item['group'], $item['title'])) {
+                $results[] = $item;
+            } elseif (!empty($item['quicktask']) && $matches($item['group'], $item['quicktask']['title'])) {
+                // Only the quicktask matches: list it on its own, so it gets preselected for Enter.
+                $results[] = ['group' => $item['group']] + $item['quicktask'];
+            }
+        }
+
+        // Not sorted here: the browser sorts by the displayed "Group: Title" label.
+        $items = $results;
 
         // Every rendered link counts, quicktasks included. Built here for correct plural forms.
         $count = \count($items) + \count(array_filter(array_column($items, 'quicktask')));
