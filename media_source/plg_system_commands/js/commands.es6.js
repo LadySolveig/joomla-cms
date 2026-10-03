@@ -96,12 +96,23 @@ const initCommandsModal = () => {
 
   // The link itself is the option: no interactive element nested inside an option, and mouse
   // users keep middle-click and "open in new tab".
-  const createOption = (title, href) => {
-    const option = createEl('a', title, ['list-group-item', 'list-group-item-action']);
+  // "Group: Title", without the group when the title already contains it ("Global Configuration").
+  const getLabel = (group, title) => (group && !title.toLowerCase().includes(group.toLowerCase()) ? `${group}: ${title}` : title);
+
+  const createOption = (label, href, isQuicktask = false) => {
+    const option = createEl('a', label, ['list-group-item', 'list-group-item-action']);
     option.id = `command-option-${resultList.children.length}`;
     option.setAttribute('role', 'option');
     option.href = href;
     option.tabIndex = -1;
+
+    // Indented with a "+" below the item it belongs to.
+    if (isQuicktask) {
+      const icon = createEl('span', '', ['icon-plus']);
+      icon.setAttribute('aria-hidden', 'true');
+      option.classList.add('command-dialog-quicktask');
+      option.prepend(icon);
+    }
 
     resultList.appendChild(option);
   };
@@ -122,13 +133,16 @@ const initCommandsModal = () => {
     noResults.hidden = items.length > 0;
     searchInput.setAttribute('aria-expanded', items.length > 0 ? 'true' : 'false');
 
-    items.forEach((item) => {
-      createOption(item.title, item.link);
+    items
+      .map((item) => ({ ...item, label: getLabel(item.group, item.title) }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .forEach((item) => {
+        createOption(item.label, item.link);
 
-      if (item.quicktask) {
-        createOption(item.quicktask.title, item.quicktask.link);
-      }
-    });
+        if (item.quicktask) {
+          createOption(getLabel(item.group, item.quicktask.title), item.quicktask.link, true);
+        }
+      });
 
     setActive(0);
 

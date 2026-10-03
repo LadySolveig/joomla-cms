@@ -39,6 +39,15 @@ joomla-dialog.command-palette-dialog .command-dialog-results {
   overflow-y: auto;
 }
 
+/* Quicktasks sit indented below their item. */
+joomla-dialog.command-palette-dialog .command-dialog-quicktask {
+  padding-inline-start: 2rem;
+}
+
+joomla-dialog.command-palette-dialog .command-dialog-quicktask .icon-plus {
+  margin-inline-end: .5rem;
+}
+
 /* Own selection style instead of .active, so it can't be lost to template overrides. */
 joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"] {
   z-index: 2;

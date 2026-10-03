@@ -198,13 +198,21 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $items = $searchEvent->getItems();
 
+        // Third-party items may come without a group.
+        foreach ($items as &$item) {
+            if (empty($item['group'])) {
+                $item['group'] = $this->getComponentGroup($item['link'] ?? '') ?: Text::_('PLG_SYSTEM_COMMANDS_GROUP_OTHER');
+            }
+        }
+
+        unset($item);
+
         $items = array_filter($items, function ($item) use ($search) {
-            return mb_stripos($item['title'], $search) !== false;
+            return mb_stripos($item['group'] . ': ' . $item['title'], $search) !== false;
         });
 
-        usort($items, function ($a, $b) {
-            return strcmp($a['title'], $b['title']);
-        });
+        // Sorted in the browser by the displayed "Group: Title" label.
+        $items = array_values($items);
 
         // Every rendered link counts, quicktasks included. Built here for correct plural forms.
         $count = \count($items) + \count(array_filter(array_column($items, 'quicktask')));
@@ -222,7 +230,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @param   AdministratorMenuItem  $parent   The menu item to collect children from.
      * @param   string                 $context  Translated title of the enclosing heading or
-     *                                           parent component, used as the label prefix.
+     *                                           parent component, used as the group.
      *
      * @return array
      */
@@ -246,10 +254,11 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             }
 
             if ($item->type === 'component') {
-                $prefix = $context ?: (!empty($item->element) ? Text::_(strtoupper($item->element)) : '');
+                $group = $context ?: (!empty($item->element) ? Text::_(strtoupper($item->element)) : '');
 
                 $menuItems[] = [
-                    'title' => $prefix !== '' && $prefix !== $title ? $prefix . ': ' . $title : $title,
+                    'group' => $group,
+                    'title' => $title,
                     'link'  => Route::_($item->link, false),
                 ];
 
@@ -266,7 +275,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
                             : Text::sprintf('PLG_SYSTEM_COMMANDS_QUICKTASK_NEW', $title);
 
                         $menuItems[count($menuItems) - 1]['quicktask'] = [
-                            'title' => $prefix !== '' ? $prefix . ': ' . $quicktaskTitle : $quicktaskTitle,
+                            'title' => $quicktaskTitle,
                             'link'  => Route::_($quicktaskLink, false),
                         ];
                     }
@@ -316,20 +325,17 @@ final class Commands extends CMSPlugin implements SubscriberInterface
                 continue;
             }
 
-            $link   = str_replace('&amp;', '&', $link);
-            $title  = Text::_($name);
-            $prefix = $this->getQuickIconPrefix($link, $title);
+            $link = str_replace('&amp;', '&', $link);
 
             $item = [
-                'title' => $prefix !== '' ? $prefix . ': ' . $title : $title,
+                'group' => $this->getComponentGroup($link),
+                'title' => Text::_($name),
                 'link'  => $link,
             ];
 
             if (!empty($button['linkadd'])) {
-                $quicktaskTitle = Text::_($name . '_ADD');
-
                 $item['quicktask'] = [
-                    'title' => $prefix !== '' ? $prefix . ': ' . $quicktaskTitle : $quicktaskTitle,
+                    'title' => Text::_($name . '_ADD'),
                     'link'  => str_replace('&amp;', '&', $button['linkadd']),
                 ];
             }
@@ -341,16 +347,15 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     }
 
     /**
-     * Label prefix for a quick icon: the linked component's name, plus the client if any.
+     * Group for a link: the linked component's name, plus the client if any.
      *
-     * @param   string  $link   The quick icon's link, not &amp;-escaped.
-     * @param   string  $title  The quick icon's translated title.
+     * @param   string  $link  The link, not &amp;-escaped.
      *
      * @return  string
      *
      * @since __DEPLOY_VERSION__
      */
-    private function getQuickIconPrefix(string $link, string $title): string
+    private function getComponentGroup(string $link): string
     {
         $uri    = new Uri($link);
         $option = $uri->getVar('option');
@@ -363,7 +368,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $language->load($option . '.sys', JPATH_ADMINISTRATOR)
             || $language->load($option . '.sys', JPATH_ADMINISTRATOR . '/components/' . $option);
 
-        // No translated component name (e.g. a third-party icon without a .sys file) - no prefix
+        // No translated component name (e.g. a third-party icon without a .sys file) - no group
         // rather than a raw COM_FOO key.
         if (!$language->hasKey(strtoupper($option))) {
             return '';
@@ -377,11 +382,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             default => '',
         };
 
-        if ($client !== '') {
-            return $component . ' (' . $client . ')';
-        }
-
-        return mb_stripos($title, $component) === false ? $component : '';
+        return $client !== '' ? $component . ' (' . $client . ')' : $component;
     }
 
     /**
