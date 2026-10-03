@@ -89,6 +89,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $this->loadLanguage();
 
         Text::script('JCLOSE');
+        Text::script('PLG_SYSTEM_COMMANDS_DIALOG_LABEL');
         Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
 
         $document = $this->getApplication()->getDocument();

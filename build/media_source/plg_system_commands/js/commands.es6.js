@@ -111,11 +111,9 @@ const initCommandsModal = () => {
   commandsDialog = new JoomlaDialog({
     popupTemplate: popupTemplate,
     popupContent: content,
-    // Suppress the library's own auto-added header close button: we provide our own,
-    // next to the search input, instead. A non-empty popupButtons list is the only way
-    // to opt out of the default (see joomla-dialog.w-c.es6.js renderLayout()).
     popupButtons: [{ label: '', className: 'd-none', location: 'header' }],
     className: 'command-palette-dialog',
+    ariaLabel: Joomla.Text._('PLG_SYSTEM_COMMANDS_DIALOG_LABEL'),
     width: '600px',
     height: 'fit-content',
     cancelable: true,
