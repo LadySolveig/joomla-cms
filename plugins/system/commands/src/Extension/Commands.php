@@ -4,7 +4,7 @@
  * @package     Joomla.Plugin
  * @subpackage  System.commands
  *
- * @copyright   (C) 2024 Open Source Matters, Inc. <https://www.joomla.org>
+ * @copyright   (C) 2026 Open Source Matters, Inc. <https://www.joomla.org>
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -41,7 +41,6 @@ use Joomla\Registry\Registry;
  */
 final class Commands extends CMSPlugin implements SubscriberInterface
 {
-
     /**
      * Flag to check if command dialog template is append to body.
      *
@@ -70,10 +69,10 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'onBeforeCompileHead'      => 'initialize',
-            'onAfterRender'            => 'onAfterRender',
-            'onAjaxCommands'           => 'onAjaxCommands',
-            'onLoadShortcuts'          => 'addShortcut',
+            'onBeforeCompileHead' => 'initialize',
+            'onAfterRender'       => 'onAfterRender',
+            'onAjaxCommands'      => 'onAjaxCommands',
+            'onLoadShortcuts'     => 'addShortcut',
         ];
     }
 
@@ -159,12 +158,12 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      * Ajax command to load command items
      *
      * @param   AjaxEvent  $event  The event object
+     *
      * @return  void
      *
-     * @since _DEPLOY_VERSION_
+     * @since   __DEPLOY_VERSION__
      *
-     * @throws  Notallowed  If user is not allowed
-     *
+     * @throws  NotAllowed  If the token is invalid or the user is not allowed
      */
     public function onAjaxCommands(AjaxEvent $event)
     {
@@ -173,13 +172,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         }
 
         /**
-         * @var Joomla\CMS\Application\AdministratorApplication $app
+         * @var \Joomla\CMS\Application\AdministratorApplication $app
          */
         $app = $this->getApplication();
 
         if (!$app->isClient('administrator') || !$this->isAllowedUser()) {
             throw new NotAllowed($this->getApplication()->getLanguage()->_('JGLOBAL_AUTH_ACCESS_DENIED'), 403);
-        };
+        }
 
         $this->loadLanguage();
 
@@ -419,7 +418,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
                             ? Text::_($quicktaskTitleKey)
                             : Text::sprintf('PLG_SYSTEM_COMMANDS_QUICKTASK_NEW', $title);
 
-                        $menuItems[count($menuItems) - 1]['quicktask'] = [
+                        $menuItems[\count($menuItems) - 1]['quicktask'] = [
                             'title' => $quicktaskTitle,
                             'link'  => Route::_($quicktaskLink, false),
                         ];
@@ -561,11 +560,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      * Add Html-Template for the command palette.
      *
      * @return  void
+     *
+     * @since   __DEPLOY_VERSION__
      */
     public function onAfterRender()
     {
         /** @var \Joomla\Application\WebApplicationInterface $app */
-        $app        = $this->getApplication();
+        $app = $this->getApplication();
 
         if (!$app->isClient('administrator') || !($app->getDocument() instanceof \Joomla\CMS\Document\HtmlDocument)) {
             return;
@@ -573,28 +574,8 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $bodyBuffer = $app->getBody();
 
-        /*if ($this->checkTemplateAlreadyAvailabel($bodyBuffer)) {
-            return;
-        }*/
-
         if (!$this->isTemplateAppend) {
-
             $templateCommandPalette = LayoutHelper::render('joomla.commands.default', ['editMode' => $app->getInput()->getBool('hidemainmenu')]);
-
-            /*$templateCommandPalette = '<template id="command-palette-dialog-search">
-                                        <div class="command-palette-dialog-search">
-                                            <form action="#" method="post" name="adminCommandForm" id="adminCommandForm" data-multiselect="">
-                                            <input type="text" name="command[search]" id="command_search" value="" class="form-control" aria-describedby="command_search-desc" placeholder="Search" inputmode="search">
-                                            </form>
-                                        </div>
-                                        <hr>
-                                        <ul class="list-group">
-                                            <li class="list-group-item">
-                                                Test
-                                            </li>
-                                            <li class="list-group-item">Test</li>
-                                        </ul>
-                                       </template>';*/
 
             $bodyBuffer = str_ireplace('</body>', $templateCommandPalette . '</body>', $bodyBuffer);
 
