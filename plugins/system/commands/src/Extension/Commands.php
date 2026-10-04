@@ -110,6 +110,8 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $input = $this->getApplication()->getInput();
         $document->addScriptOptions('plg_system_commands.context', $input->getCmd('option') . '.' . $input->getCmd('view'));
+
+        $document->addScriptOptions('plg_system_commands.editMode', $input->getBool('hidemainmenu'));
     }
 
     /**
@@ -577,7 +579,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         if (!$this->isTemplateAppend) {
 
-            $templateCommandPalette = LayoutHelper::render('joomla.commands.default');
+            $templateCommandPalette = LayoutHelper::render('joomla.commands.default', ['editMode' => $app->getInput()->getBool('hidemainmenu')]);
 
             /*$templateCommandPalette = '<template id="command-palette-dialog-search">
                                         <div class="command-palette-dialog-search">

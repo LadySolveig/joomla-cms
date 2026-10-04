@@ -48,21 +48,33 @@ joomla-dialog.command-palette-dialog .command-dialog-quicktask .icon-plus {
   margin-inline-end: .5rem;
 }
 
-/* Own selection style instead of .active, so it can't be lost to template overrides. */
 joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"] {
   z-index: 2;
+  color: var(--list-group-action-hover-color);
+  background-color: var(--list-group-action-hover-bg);
+}
+
+/* Atum's dark hover colors are too light for the selection; use its active colors there. */
+:root[data-color-scheme="dark"] joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"] {
   color: var(--list-group-active-color);
   background-color: var(--list-group-active-bg);
 }
 
 /* Accent bar on the inline start side, so it flips in RTL. */
+/* Atum puts an external-link icon on every a[target="_blank"]::before; the palette uses ::before for
+   the accent bar and shows its own icon. Atum's padding is reset so the bar keeps its width. */
+joomla-dialog.command-palette-dialog [role="option"]::before {
+  content: none;
+}
+
 joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"]::before {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
   inline-size: .25rem;
+  padding: 0;
   content: "";
-  background-color: var(--template-bg-dark);
+  background-color: var(--template-special-color);
 }
 
 @media (forced-colors: active) {

@@ -29,6 +29,9 @@ const createEl = (nodeName, text = '', classList = []) => {
 
 const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
 
+// Edit views (menu hidden) open every result in a new tab, so the form and its check-out stay intact.
+const isEditMode = Joomla.getOptions('plg_system_commands.editMode', false);
+
 let commandsDialog;
 let announce = () => {};
 let loadIfNeeded = () => {};
@@ -64,6 +67,20 @@ const initCommandsModal = () => {
   const hint = content.querySelector('#command-dialog-hint');
 
   closeButton.addEventListener('click', () => commandsDialog.close());
+
+  const openInNewTab = (href) => {
+    window.open(href, '_blank', 'noopener');
+    commandsDialog.close();
+  };
+
+  resultList.addEventListener('click', (event) => {
+    const option = event.target.closest('[role="option"]');
+
+    if (option && option.target === '_blank' && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      openInNewTab(option.href);
+    }
+  });
 
   // Combobox pattern: focus stays in the input, aria-activedescendant points to the selected option.
   let activeIndex = -1;
@@ -150,10 +167,18 @@ const initCommandsModal = () => {
     option.tabIndex = -1;
     option.dataset.label = label;
 
-    if (target === '_blank' || option.origin !== window.location.origin) {
+    const isExternal = target === '_blank' || option.origin !== window.location.origin;
+
+    if (isExternal || isEditMode) {
       option.target = '_blank';
       option.rel = 'noopener noreferrer';
-      option.append(createEl('span', ` (${Joomla.Text._('JGLOBAL_OPENS_IN_A_NEW_WINDOW')})`, ['visually-hidden']));
+    }
+
+    // Own marker instead of Atum's (hidden in the CSS); not in edit mode, where the note covers all entries.
+    if (isExternal && !isEditMode) {
+      const icon = createEl('span', '', ['icon-external-link-alt', 'ms-2']);
+      icon.setAttribute('aria-hidden', 'true');
+      option.append(icon, createEl('span', ` (${Joomla.Text._('JGLOBAL_OPENS_IN_A_NEW_WINDOW')})`, ['visually-hidden']));
     }
 
     if (isQuicktask) {
@@ -388,7 +413,7 @@ const initCommandsModal = () => {
       const { href, target } = options[activeIndex];
 
       if (event.ctrlKey || event.metaKey || target === '_blank') {
-        window.open(href, '_blank', 'noopener');
+        openInNewTab(href);
       } else {
         window.location.assign(href);
       }
@@ -463,8 +488,8 @@ const getPlatformHotkeys = (hotkeyList) => {
 document.addEventListener('DOMContentLoaded', () => {
   const openHotkey = getPlatformHotkeys(Joomla.getOptions('plg_system_commands.openhotkey'));
 
-  // Open the command palette only in the logged-in backend (not the login page)
-  if (document.querySelector('nav')) {
+  // Open the command palette only in the logged-in backend (not the login page); edit views have no menu <nav>.
+  if (document.querySelector('nav') || isEditMode) {
     hotkeys(openHotkey, (event) => {
       showCommandsModal();
       event.preventDefault();
