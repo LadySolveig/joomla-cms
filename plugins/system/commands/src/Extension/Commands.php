@@ -96,6 +96,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         Text::script('PLG_SYSTEM_COMMANDS_DIALOG_LABEL');
         Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
         Text::script('JGLOBAL_OPENS_IN_A_NEW_WINDOW');
+        Text::script('PLG_SYSTEM_COMMANDS_STATUS_SELECTED');
 
         $document = $this->getApplication()->getDocument();
         $wa       = $document->getWebAssetManager();

@@ -35,6 +35,7 @@ const isEditMode = Joomla.getOptions('plg_system_commands.editMode', false);
 let commandsDialog;
 let announce = () => {};
 let loadIfNeeded = () => {};
+let openedAt = 0;
 const initCommandsModal = () => {
   if (commandsDialog) {
     return commandsDialog;
@@ -86,6 +87,10 @@ const initCommandsModal = () => {
 
   const getOptions = () => [...resultList.querySelectorAll('[role="option"]')];
 
+  // aria-activedescendant only after ↑/↓: while typing, screen readers would otherwise read the
+  // preselected first result on every keystroke and drown out the result count.
+  let navigating = false;
+
   const setActive = (index) => {
     const options = getOptions();
 
@@ -100,12 +105,15 @@ const initCommandsModal = () => {
     hint.textContent = activeIndex === -1 ? '' : `↵ ${options[activeIndex].dataset.label}`;
     hint.parentElement.classList.toggle('has-hint', activeIndex !== -1);
 
-    if (activeIndex === -1) {
+    if (activeIndex === -1 || !navigating) {
       searchInput.removeAttribute('aria-activedescendant');
-      return;
+    } else {
+      searchInput.setAttribute('aria-activedescendant', options[activeIndex].id);
     }
 
-    searchInput.setAttribute('aria-activedescendant', options[activeIndex].id);
+    if (activeIndex === -1) {
+      return;
+    }
 
     const option = options[activeIndex];
     const top = option.offsetTop;
@@ -159,7 +167,14 @@ const initCommandsModal = () => {
 
   const createOption = (label, href, words, isQuicktask = false, target = '') => {
     const option = createEl('a', '', ['list-group-item', 'list-group-item-action']);
-    option.append(highlight(label, words));
+
+    // Screen readers get one plain text: Orca reads the <mark> pieces of the highlighted label as
+    // separate parts ("Content: link icles"), so that visual label is hidden from them.
+    const visual = createEl('span');
+    visual.setAttribute('aria-hidden', 'true');
+    visual.append(highlight(label, words));
+    const text = createEl('span', label, ['visually-hidden']);
+    option.append(visual, text);
     option.id = `command-option-${resultList.children.length}`;
     option.setAttribute('role', 'option');
     option.href = href;
@@ -177,7 +192,8 @@ const initCommandsModal = () => {
     if (isExternal && !isEditMode) {
       const icon = createEl('span', '', ['icon-external-link-alt', 'ms-2']);
       icon.setAttribute('aria-hidden', 'true');
-      option.append(icon, createEl('span', ` (${Joomla.Text._('JGLOBAL_OPENS_IN_A_NEW_WINDOW')})`, ['visually-hidden']));
+      option.append(icon);
+      text.textContent += `, ${Joomla.Text._('JGLOBAL_OPENS_IN_A_NEW_WINDOW')}`;
     }
 
     if (isQuicktask) {
@@ -231,6 +247,8 @@ const initCommandsModal = () => {
 
   // Clear first: screen readers skip a live region update that repeats the same text.
   // Delayed, so typing doesn't trigger an announcement per keystroke.
+  // Right after opening, wait for the dialog announcement: Orca drops live region text that
+  // changes while it is still processing the new dialog.
   let lastStatus = '';
   let announceTimeout;
   announce = (text = lastStatus) => {
@@ -239,7 +257,7 @@ const initCommandsModal = () => {
     clearTimeout(announceTimeout);
     announceTimeout = setTimeout(() => {
       status.textContent = text;
-    }, 500);
+    }, Math.max(500, openedAt + 1500 - Date.now()));
   };
 
   const renderItems = (items, statusText, search, keepHref = null) => {
@@ -249,7 +267,6 @@ const initCommandsModal = () => {
     Joomla.removeMessages(errorContainer);
     noResults.textContent = statusText;
     noResults.hidden = items.length > 0;
-    searchInput.setAttribute('aria-expanded', items.length > 0 ? 'true' : 'false');
 
     // Links to other sites after the backend pages, both alphabetically.
     // Menu links like the help preset's language forum link are backend URLs that redirect to the forum.
@@ -290,7 +307,6 @@ const initCommandsModal = () => {
       resultList.replaceChildren();
       setActive(-1);
       noResults.hidden = true;
-      searchInput.setAttribute('aria-expanded', 'false');
     }
 
     Joomla.renderMessages({ error: [message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] }, errorContainer);
@@ -359,9 +375,19 @@ const initCommandsModal = () => {
       if (dynamicItems.length) {
         const selected = getOptions()[activeIndex];
         renderItems(filterStatic(getWords(search)).concat(dynamicItems), data.status, search, selected && selected.href);
-        announce(data.status);
+        announce(withSelection(data.status));
       }
     }, true);
+  };
+
+  // The count plus the preselected result, so screen reader users know what Enter opens without
+  // aria-activedescendant reading the first option on every keystroke.
+  const withSelection = (countText) => {
+    const selected = getOptions()[activeIndex];
+
+    return selected
+      ? Joomla.Text._('PLG_SYSTEM_COMMANDS_STATUS_SELECTED').replace('%1$s', countText).replace('%2$s', selected.dataset.label)
+      : countText;
   };
 
   const getStatus = (count) => statusTexts[Math.min(count, statusTexts.length - 1)] || '';
@@ -373,10 +399,12 @@ const initCommandsModal = () => {
     const words = getWords(search);
     const results = filterStatic(words);
 
+    navigating = false;
+
     latestRequest += 1;
     dynamicItems = [];
     staticCount = renderItems(results, getStatus(results.length + results.filter((item) => item.quicktask).length), search);
-    announce(getStatus(staticCount));
+    announce(withSelection(getStatus(staticCount)));
 
     clearTimeout(searchTimeout);
 
@@ -406,6 +434,7 @@ const initCommandsModal = () => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const step = event.key === 'ArrowDown' ? 1 : -1;
+      navigating = true;
       setActive((activeIndex + step + options.length) % options.length);
     } else if (event.key === 'Enter' && activeIndex !== -1) {
       event.preventDefault();
@@ -467,6 +496,7 @@ const initCommandsModal = () => {
 };
 
 const showCommandsModal = () => {
+  openedAt = Date.now();
   const dialog = initCommandsModal();
   dialog.show();
   dialog.querySelector('#command_search')?.focus();
