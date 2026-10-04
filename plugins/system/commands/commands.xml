@@ -25,7 +25,7 @@
 	</languages>
 	<config>
 		<fields name="params">
-			<fieldset name="basic">
+			<fieldset name="basic" addfieldprefix="Joomla\Component\Menus\Administrator\Field">
 				<field
 					name="openhotkey"
 					type="text"
@@ -33,6 +33,14 @@
 					description="PLG_SYSTEM_COMMANDS_OPENHOTKEY_DESC"
 					required="true"
 					default="cmd+k,ctrl+k"
+				/>
+				<field
+					name="presets"
+					type="menuPreset"
+					label="PLG_SYSTEM_COMMANDS_PRESETS_LABEL"
+					description="PLG_SYSTEM_COMMANDS_PRESETS_DESC"
+					layout="joomla.form.field.list-fancy-select"
+					multiple="true"
 				/>
 			</fieldset>
 		</fields>

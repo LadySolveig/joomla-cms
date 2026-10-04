@@ -13,6 +13,7 @@ namespace Joomla\Plugin\System\Commands\Extension;
 use Joomla\CMS\Access\Exception\NotAllowed;
 use Joomla\CMS\Event\Plugin\AjaxEvent;
 use Joomla\CMS\Event\Plugin\System\Commands as CommandsEvent;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Menu\AdministratorMenuItem;
@@ -21,6 +22,8 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Module\Quickicon\Administrator\Helper\QuickIconHelper;
@@ -210,14 +213,14 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         // Needed for mod_menu's own strings (e.g. MOD_MENU_COM_ACTIONLOGS).
         $app->getLanguage()->load('mod_menu', JPATH_ADMINISTRATOR);
 
-        $adminMenuItem = MenusHelper::loadPreset('default');
-
-        Menu::preprocess($adminMenuItem);
-
         $items = [];
 
-        if ($adminMenuItem->hasChildren()) {
-            $items = $this->normalizeMenuItems($adminMenuItem);
+        foreach ($this->getMenuRoots() as $root) {
+            Menu::preprocess($root);
+
+            if ($root->hasChildren()) {
+                $items = array_merge($items, $this->normalizeMenuItems($root));
+            }
         }
 
         $items = array_merge($items, $this->getQuickIconItems());
@@ -264,6 +267,57 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
         $event->updateEventResult($response);
+    }
+
+    /**
+     * All menus to list: default preset, published admin menu/dashboard modules, configured presets.
+     *
+     * @return  AdministratorMenuItem[]
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    private function getMenuRoots(): array
+    {
+        $db    = Factory::getContainer()->get(DatabaseInterface::class);
+        $query = $db->getQuery(true)
+            ->select([$db->quoteName('module'), $db->quoteName('params')])
+            ->from($db->quoteName('#__modules'))
+            ->where(
+                [
+                    $db->quoteName('client_id') . ' = 1',
+                    $db->quoteName('published') . ' = 1',
+                ]
+            )
+            ->whereIn($db->quoteName('module'), ['mod_menu', 'mod_submenu'], ParameterType::STRING)
+            ->order($db->quoteName('ordering'));
+
+        $presets   = ['default'];
+        $menutypes = [];
+
+        foreach ($db->setQuery($query)->loadObjectList() as $module) {
+            $params   = new Registry($module->params);
+            $menutype = $params->get('menutype', '*');
+
+            if ($menutype === '*') {
+                $presets[] = $params->get('preset', $module->module === 'mod_menu' ? 'default' : '');
+            } else {
+                $menutypes[] = $menutype;
+            }
+        }
+
+        $presets = array_merge($presets, (array) $this->params->get('presets', []));
+        $roots   = [];
+
+        // No fallback: an unknown preset must not load "default" a second time.
+        foreach (array_unique(array_filter($presets)) as $preset) {
+            $roots[] = MenusHelper::loadPreset($preset, false);
+        }
+
+        foreach (array_unique($menutypes) as $menutype) {
+            $roots[] = MenusHelper::getMenuItems($menutype, true);
+        }
+
+        return $roots;
     }
 
     /**
