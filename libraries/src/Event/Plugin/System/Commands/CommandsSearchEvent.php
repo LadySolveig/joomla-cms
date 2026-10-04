@@ -18,6 +18,8 @@ use Joomla\CMS\Event\AbstractImmutableEvent;
 /**
  * Concrete event class for the onCommandsSearch event.
  *
+ * For term-dependent results only; static items belong in onCommandsLoad.
+ *
  * Listeners run inside the CSRF/core.login.admin gate already enforced by onAjaxCommands() - they
  * must not assume any stronger privilege is guaranteed.
  *

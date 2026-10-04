@@ -172,19 +172,37 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             throw new NotAllowed($this->getApplication()->getLanguage()->_('JGLOBAL_AUTH_ACCESS_DENIED'), 403);
         };
 
-        $search = $app->getInput()->getString('search', '');
+        $this->loadLanguage();
 
-        /* if (empty($search)) {
-            $response['success'] = false;
-            $response['message'] = $this->getApplication()->getLanguage()->_('PLG_SYSTEM_COMMANDS_SEARCH_EMPTY');
+        $input   = $app->getInput();
+        $context = $input->get('option') . '.' . $input->get('view');
+
+        if ($input->getCmd('mode') === 'search') {
+            // Dynamic results only; the static items are filtered in the browser.
+            $searchEvent = new CommandsEvent\CommandsSearchEvent(
+                'onCommandsSearch',
+                [
+                    'context' => $context,
+                    'search'  => $input->getString('search', ''),
+                    'items'   => [],
+                ]
+            );
+
+            $this->getDispatcher()->dispatch('onCommandsSearch', $searchEvent);
+
+            $items = $this->completeGroups($searchEvent->getItems());
+
+            // The browser sends how many static results it shows, for the combined count.
+            $response = [
+                'success' => true,
+                'items'   => $items,
+                'status'  => Text::plural('PLG_SYSTEM_COMMANDS_N_RESULTS', $input->getUint('static', 0) + $this->countLinks($items)),
+            ];
 
             $event->updateEventResult($response);
-            return;
-        } */
 
-        // This plugin's own strings (e.g. PLG_SYSTEM_COMMANDS_QUICKTASK_NEW) - initialize()'s
-        // loadLanguage() only runs on onBeforeCompileHead, which this AJAX request never fires.
-        $this->loadLanguage();
+            return;
+        }
 
         // Needed for mod_menu's own strings (e.g. MOD_MENU_COM_ACTIONLOGS).
         $app->getLanguage()->load('mod_menu', JPATH_ADMINISTRATOR);
@@ -214,61 +232,69 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             return true;
         }));
 
-        $searchEvent = new CommandsEvent\CommandsSearchEvent(
-            'onCommandsSearch',
+        $loadEvent = new CommandsEvent\CommandsLoadEvent(
+            'onCommandsLoad',
             [
-                'context' => $app->getInput()->get('option') . '.' . $app->getInput()->get('view'),
-                'search'  => $search,
+                'context' => $context,
                 'items'   => $items,
             ]
         );
 
-        $this->getDispatcher()->dispatch('onCommandsSearch', $searchEvent);
+        $this->getDispatcher()->dispatch('onCommandsLoad', $loadEvent);
 
-        $items = $searchEvent->getItems();
+        $items = $this->completeGroups($loadEvent->getItems());
 
-        // Third-party items may come without a group.
+        // The browser counts the results itself, but plural rules only exist in PHP: send the
+        // status text for every possible count (index = number of shown links).
+        $status = [];
+
+        for ($count = 0, $total = $this->countLinks($items); $count <= $total; $count++) {
+            $status[] = Text::plural('PLG_SYSTEM_COMMANDS_N_RESULTS', $count);
+        }
+
+        $response = [
+            'success' => true,
+            'items'   => $items,
+            'status'  => $status,
+            'dynamic' => !empty($this->getDispatcher()->getListeners('onCommandsSearch')),
+        ];
+
+        // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
+        $event->updateEventResult($response);
+    }
+
+    /**
+     * Give items without a group (e.g. from third-party plugins) the linked component's name.
+     *
+     * @param   array  $items  The items.
+     *
+     * @return  array
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    private function completeGroups(array $items): array
+    {
         foreach ($items as &$item) {
             if (empty($item['group'])) {
                 $item['group'] = $this->getComponentGroup($item['link'] ?? '') ?: Text::_('PLG_SYSTEM_COMMANDS_GROUP_OTHER');
             }
         }
 
-        unset($item);
+        return array_values($items);
+    }
 
-        $words   = preg_split('/\s+/u', trim($search), -1, PREG_SPLIT_NO_EMPTY);
-        $matches = function ($group, $title) use ($words) {
-            foreach ($words as $word) {
-                if (mb_stripos($group . ': ' . $title, $word) === false) {
-                    return false;
-                }
-            }
-
-            return true;
-        };
-        $results = [];
-
-        foreach ($items as $item) {
-            if ($matches($item['group'], $item['title'])) {
-                $results[] = $item;
-            } elseif (!empty($item['quicktask']) && $matches($item['group'], $item['quicktask']['title'])) {
-                // Only the quicktask matches: list it on its own, so it gets preselected for Enter.
-                $results[] = ['group' => $item['group']] + $item['quicktask'];
-            }
-        }
-
-        // Not sorted here: the browser sorts by the displayed "Group: Title" label.
-        $items = $results;
-
-        // Every rendered link counts, quicktasks included. Built here for correct plural forms.
-        $count = \count($items) + \count(array_filter(array_column($items, 'quicktask')));
-
-        $response['success'] = true;
-        $response['items'] = $items;
-        $response['status'] = Text::plural('PLG_SYSTEM_COMMANDS_N_RESULTS', $count);
-
-        // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
-        $event->updateEventResult($response);
+    /**
+     * Number of links the browser renders for these items: every item plus its quicktask.
+     *
+     * @param   array  $items  The items.
+     *
+     * @return  integer
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    private function countLinks(array $items): int
+    {
+        return \count($items) + \count(array_filter(array_column($items, 'quicktask')));
     }
 
     /**

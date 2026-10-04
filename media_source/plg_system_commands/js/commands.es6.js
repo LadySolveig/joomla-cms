@@ -160,6 +160,13 @@ const initCommandsModal = () => {
     resultList.appendChild(option);
   };
 
+  // Static items, loaded once per page and filtered here; dynamic ones come per term from plugins.
+  let staticItems = null;
+  let statusTexts = [];
+  let hasDynamic = false;
+  let dynamicItems = [];
+
+  // While the static items load the list is stale: dimmed, aria-busy, and Enter is queued.
   let busy = false;
   let pendingEnter = false;
 
@@ -169,8 +176,44 @@ const initCommandsModal = () => {
     resultList.classList.toggle('opacity-50', value);
   };
 
-  const renderItems = (items, statusText, search) => {
-    const words = search.split(/\s+/).filter(Boolean);
+  const getWords = (search) => search.toLowerCase().split(/\s+/).filter(Boolean);
+
+  const matches = (group, title, words) => {
+    const haystack = `${group}: ${title}`.toLowerCase();
+
+    return words.every((word) => haystack.includes(word));
+  };
+
+  const filterStatic = (words) => {
+    const results = [];
+
+    staticItems.forEach((item) => {
+      if (matches(item.group, item.title, words)) {
+        results.push(item);
+      } else if (item.quicktask && matches(item.group, item.quicktask.title, words)) {
+        // Only the quicktask matches: list it on its own, so it gets preselected for Enter.
+        results.push({ group: item.group, ...item.quicktask });
+      }
+    });
+
+    return results;
+  };
+
+  // Clear first: screen readers skip a live region update that repeats the same text.
+  // Delayed, so typing doesn't trigger an announcement per keystroke.
+  let lastStatus = '';
+  let announceTimeout;
+  announce = (text = lastStatus) => {
+    lastStatus = text;
+    status.textContent = '';
+    clearTimeout(announceTimeout);
+    announceTimeout = setTimeout(() => {
+      status.textContent = text;
+    }, 500);
+  };
+
+  const renderItems = (items, statusText, search, keepHref = null) => {
+    const words = getWords(search);
 
     resultList.replaceChildren();
     Joomla.removeMessages(errorContainer);
@@ -189,81 +232,59 @@ const initCommandsModal = () => {
         }
       });
 
-    setActive(0);
+    const options = getOptions();
+    const kept = keepHref ? options.findIndex((option) => option.href === keepHref) : -1;
+    setActive(kept !== -1 ? kept : 0);
 
-    // Enter pressed while searching: open the first result once it is there.
-    const [first] = getOptions();
-
-    if (pendingEnter && first) {
-      window.location.assign(first.href);
+    // Enter pressed while loading: open the first result once it is there.
+    if (pendingEnter && options[0]) {
+      window.location.assign(options[0].href);
     }
 
     pendingEnter = false;
-  };
 
-  // Clear first: screen readers skip a live region update that repeats the same text.
-  let lastStatus = '';
-  let announceTimeout;
-  announce = (text = lastStatus) => {
-    lastStatus = text;
-    status.textContent = '';
-    clearTimeout(announceTimeout);
-    announceTimeout = setTimeout(() => {
-      status.textContent = text;
-    }, 100);
+    return options.length;
   };
 
   // Inside the dialog: the page behind a modal dialog is inert.
-  const showError = (message) => {
+  const showError = (message, keepList = false) => {
     pendingEnter = false;
-    resultList.replaceChildren();
-    setActive(-1);
-    noResults.hidden = true;
-    searchInput.setAttribute('aria-expanded', 'false');
+
+    if (!keepList) {
+      resultList.replaceChildren();
+      setActive(-1);
+      noResults.hidden = true;
+      searchInput.setAttribute('aria-expanded', 'false');
+    }
+
     Joomla.renderMessages({ error: [message || Joomla.Text._('JERROR_AN_ERROR_HAS_OCCURRED')] }, errorContainer);
   };
 
-  // Responses can arrive out of order; only the latest search may update the list.
-  let latestRequest = 0;
-
-  const searchCommands = (search) => {
-    latestRequest += 1;
-    const request = latestRequest;
+  const request = (params, onData, keepListOnError) => {
     const url = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
-    url.searchParams.set('search', search);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
 
     Joomla.request({
       url: `${url}`,
       method: 'GET',
       perform: true,
       onSuccess: (resp) => {
-        if (request !== latestRequest) {
-          return;
-        }
-
-        setBusy(false);
         let response = {};
 
         try {
           response = JSON.parse(resp);
         } catch (e) {
-          showError();
+          onData(null, () => showError(undefined, keepListOnError));
           return;
         }
 
         if (response.success && response.data && response.data.items) {
-          renderItems(response.data.items, response.data.status, search);
-          announce(response.data.status);
+          onData(response.data);
         } else {
-          showError(response.message);
+          onData(null, () => showError(response.message, keepListOnError));
         }
       },
       onError: (xhr) => {
-        if (request !== latestRequest) {
-          return;
-        }
-
-        setBusy(false);
         let message;
 
         try {
@@ -272,9 +293,58 @@ const initCommandsModal = () => {
           // Not a JSON error response - fall back to the generic message.
         }
 
-        showError(message);
+        onData(null, () => showError(message, keepListOnError));
       },
     });
+  };
+
+  // Responses can arrive out of order; only the latest search may update the list.
+  let latestRequest = 0;
+  let staticCount = 0;
+
+  const searchDynamic = (search) => {
+    latestRequest += 1;
+    const current = latestRequest;
+
+    request({ mode: 'search', search, static: staticCount }, (data, fail) => {
+      if (current !== latestRequest) {
+        return;
+      }
+
+      if (!data) {
+        fail();
+        return;
+      }
+
+      dynamicItems = data.items;
+
+      if (dynamicItems.length) {
+        const selected = getOptions()[activeIndex];
+        renderItems(filterStatic(getWords(search)).concat(dynamicItems), data.status, search, selected && selected.href);
+        announce(data.status);
+      }
+    }, true);
+  };
+
+  const getStatus = (count) => statusTexts[Math.min(count, statusTexts.length - 1)] || '';
+
+  // Instant: filters the static items; dynamic results follow (debounced) if a plugin provides them.
+  let searchTimeout;
+  const update = () => {
+    const search = searchInput.value;
+    const words = getWords(search);
+    const results = filterStatic(words);
+
+    latestRequest += 1;
+    dynamicItems = [];
+    staticCount = renderItems(results, getStatus(results.length + results.filter((item) => item.quicktask).length), search);
+    announce(getStatus(staticCount));
+
+    clearTimeout(searchTimeout);
+
+    if (hasDynamic && search.trim().length >= 2) {
+      searchTimeout = setTimeout(() => searchDynamic(search), 300);
+    }
   };
 
   searchInput.addEventListener('keydown', (event) => {
@@ -311,17 +381,28 @@ const initCommandsModal = () => {
     }
   });
 
-  let searchTimeout;
-  searchInput.addEventListener('input', (event) => {
-    setActive(-1);
-    setBusy(true);
+  searchInput.addEventListener('input', () => {
     pendingEnter = false;
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => searchCommands(event.target.value), 300);
+
+    if (staticItems) {
+      update();
+    }
   });
 
   setBusy(true);
-  searchCommands('');
+  request({ mode: 'load' }, (data, fail) => {
+    setBusy(false);
+
+    if (!data) {
+      fail();
+      return;
+    }
+
+    staticItems = data.items;
+    statusTexts = data.status;
+    hasDynamic = data.dynamic;
+    update();
+  }, false);
 
   commandsDialog = new JoomlaDialog({
     popupTemplate: popupTemplate,
