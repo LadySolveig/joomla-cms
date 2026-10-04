@@ -31,6 +31,7 @@ const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platfor
 
 let commandsDialog;
 let announce = () => {};
+let loadIfNeeded = () => {};
 const initCommandsModal = () => {
   if (commandsDialog) {
     return commandsDialog;
@@ -264,6 +265,8 @@ const initCommandsModal = () => {
     const url = new URL(`${Joomla.getOptions('system.paths').baseFull}index.php?option=com_ajax&group=system&plugin=commands&format=json&${Joomla.getOptions('csrf.token')}=1`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
 
+    url.searchParams.set('context', Joomla.getOptions('plg_system_commands.context', ''));
+
     Joomla.request({
       url: `${url}`,
       method: 'GET',
@@ -389,20 +392,30 @@ const initCommandsModal = () => {
     }
   });
 
-  setBusy(true);
-  request({ mode: 'load' }, (data, fail) => {
-    setBusy(false);
+  const load = () => {
+    setBusy(true);
+    request({ mode: 'load' }, (data, fail) => {
+      setBusy(false);
 
-    if (!data) {
-      fail();
-      return;
+      if (!data) {
+        fail();
+        return;
+      }
+
+      staticItems = data.items;
+      statusTexts = data.status;
+      hasDynamic = data.dynamic;
+      update();
+    }, false);
+  };
+
+  loadIfNeeded = () => {
+    if (!staticItems && !busy) {
+      load();
     }
+  };
 
-    staticItems = data.items;
-    statusTexts = data.status;
-    hasDynamic = data.dynamic;
-    update();
-  }, false);
+  load();
 
   commandsDialog = new JoomlaDialog({
     popupTemplate: popupTemplate,
@@ -422,6 +435,7 @@ const showCommandsModal = () => {
   const dialog = initCommandsModal();
   dialog.show();
   dialog.querySelector('#command_search')?.focus();
+  loadIfNeeded();
   announce();
 };
 

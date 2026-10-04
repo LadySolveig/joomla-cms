@@ -103,6 +103,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $openHotKey = $this->params->get('openhotkey', 'cmd+k,ctrl+k');
 
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
+
+        $input = $this->getApplication()->getInput();
+        $document->addScriptOptions('plg_system_commands.context', $input->getCmd('option') . '.' . $input->getCmd('view'));
     }
 
     /**
@@ -175,7 +178,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $this->loadLanguage();
 
         $input   = $app->getInput();
-        $context = $input->get('option') . '.' . $input->get('view');
+        $context = $input->getCmd('context', '');
 
         if ($input->getCmd('mode') === 'search') {
             // Dynamic results only; the static items are filtered in the browser.
