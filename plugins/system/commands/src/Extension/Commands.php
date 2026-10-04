@@ -21,6 +21,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
+use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Module\Quickicon\Administrator\Helper\QuickIconHelper;
 use Joomla\Module\Submenu\Administrator\Menu\Menu;
@@ -69,6 +70,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             'onBeforeCompileHead'      => 'initialize',
             'onAfterRender'            => 'onAfterRender',
             'onAjaxCommands'           => 'onAjaxCommands',
+            'onLoadShortcuts'          => 'addShortcut',
         ];
     }
 
@@ -98,9 +100,36 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $wa->getRegistry()->addExtensionRegistryFile('plg_system_commands');
         $wa->usePreset('plg_system_commands.commands');
 
-        $openHotKey = $this->params->get('openhotkey', 'cmd+alt+k,ctrl+alt+k');
+        $openHotKey = $this->params->get('openhotkey', 'cmd+k,ctrl+k');
 
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
+    }
+
+    /**
+     * List "J, K" in plg_system_shortcut's overview; the key is bound in commands.es6.js.
+     *
+     * @param   Event  $event  The onLoadShortcuts event.
+     *
+     * @return  void
+     *
+     * @since   __DEPLOY_VERSION__
+     */
+    public function addShortcut(Event $event): void
+    {
+        if (!$this->getApplication()->isClient('administrator') || !$this->isAllowedUser()) {
+            return;
+        }
+
+        $this->loadLanguage();
+
+        $shortcuts = $event->getArgument('shortcuts', []);
+
+        $shortcuts['commandsKey'] = (object) [
+            'shortcut' => 'K',
+            'title'    => Text::_('PLG_SYSTEM_COMMANDS_SHORTCUT_TITLE'),
+        ];
+
+        $event->setArgument('shortcuts', $shortcuts);
     }
 
     /**

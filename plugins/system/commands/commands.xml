@@ -32,7 +32,7 @@
 					label="PLG_SYSTEM_COMMANDS_OPENHOTKEY_LABEL"
 					description="PLG_SYSTEM_COMMANDS_OPENHOTKEY_DESC"
 					required="true"
-					default="cmd+alt+k,ctrl+alt+k"
+					default="cmd+k,ctrl+k"
 				/>
 			</fieldset>
 		</fields>

@@ -337,8 +337,19 @@ const showCommandsModal = () => {
   announce();
 };
 
+// Only the platform's variant of the configured combinations: "cmd" on macOS, "ctrl" elsewhere.
+// Otherwise cmd+k would also bind Win+K on Windows. Combinations without either are always kept.
+const getPlatformHotkeys = (hotkeyList) => {
+  const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
+  const foreign = isMac ? /\bctrl\b/i : /\b(cmd|command|⌘)\b/i;
+  const all = hotkeyList.split(',').map((key) => key.trim()).filter(Boolean);
+  const own = all.filter((key) => !foreign.test(key));
+
+  return (own.length ? own : all).join(',');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-  const openHotkey = Joomla.getOptions('plg_system_commands.openhotkey');
+  const openHotkey = getPlatformHotkeys(Joomla.getOptions('plg_system_commands.openhotkey'));
 
   // Open the command palette only in the logged-in backend (not the login page)
   if (document.querySelector('nav')) {
@@ -348,5 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
       event.stopPropagation();
       event.stopImmediatePropagation();
     });
+
+    if (typeof Joomla.addShortcut === 'function') {
+      Joomla.addShortcut('K', showCommandsModal);
+    }
   }
 });
