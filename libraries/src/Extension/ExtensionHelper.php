@@ -299,6 +299,7 @@ class ExtensionHelper
         ['plugin', 'accessibility', 'system', 0],
         ['plugin', 'actionlogs', 'system', 0],
         ['plugin', 'cache', 'system', 0],
+        ['plugin', 'commands', 'system', 0],
         ['plugin', 'debug', 'system', 0],
         ['plugin', 'fields', 'system', 0],
         ['plugin', 'guidedtours', 'system', 0],
