@@ -72,6 +72,10 @@ joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"]::befo
   }
 }
 
+joomla-dialog.command-palette-dialog input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+}
+
 /* Muted "↵ <selected option>" hint at the end of the search field. */
 joomla-dialog.command-palette-dialog .command-dialog-field {
   --command-hint-size: 45%;
