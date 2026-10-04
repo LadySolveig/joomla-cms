@@ -96,6 +96,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         Text::script('JCLOSE');
         Text::script('PLG_SYSTEM_COMMANDS_DIALOG_LABEL');
         Text::script('JERROR_AN_ERROR_HAS_OCCURRED');
+        Text::script('JGLOBAL_OPENS_IN_A_NEW_WINDOW');
 
         $document = $this->getApplication()->getDocument();
         $wa       = $document->getWebAssetManager();
@@ -382,13 +383,26 @@ final class Commands extends CMSPlugin implements SubscriberInterface
                 continue;
             }
 
+            // External links, e.g. the help preset's documentation and forum links.
+            if ($item->type === 'url' && $item->link) {
+                $menuItems[] = [
+                    'group'  => $context,
+                    'title'  => $title,
+                    'link'   => $item->link,
+                    'target' => $item->target,
+                ];
+
+                continue;
+            }
+
             if ($item->type === 'component') {
                 $group = $context ?: (!empty($item->element) ? Text::_(strtoupper($item->element)) : '');
 
                 $menuItems[] = [
-                    'group' => $group,
-                    'title' => $title,
-                    'link'  => Route::_($item->link, false),
+                    'group'  => $group,
+                    'title'  => $title,
+                    'link'   => Route::_($item->link, false),
+                    'target' => $item->target,
                 ];
 
                 $quicktaskLink = $item->getParams()->get('menu-quicktask');

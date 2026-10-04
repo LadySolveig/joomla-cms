@@ -81,7 +81,7 @@ const initCommandsModal = () => {
 
     // Visual only: screen readers get the option through aria-activedescendant.
     hint.hidden = activeIndex === -1;
-    hint.textContent = activeIndex === -1 ? '' : `↵ ${options[activeIndex].textContent}`;
+    hint.textContent = activeIndex === -1 ? '' : `↵ ${options[activeIndex].dataset.label}`;
     hint.parentElement.classList.toggle('has-hint', activeIndex !== -1);
 
     if (activeIndex === -1) {
@@ -91,7 +91,6 @@ const initCommandsModal = () => {
 
     searchInput.setAttribute('aria-activedescendant', options[activeIndex].id);
 
-    // Scroll only the list: scrollIntoView() would also scroll the dialog and move the search row away.
     const option = options[activeIndex];
     const top = option.offsetTop;
 
@@ -142,15 +141,21 @@ const initCommandsModal = () => {
     return fragment;
   };
 
-  const createOption = (label, href, words, isQuicktask = false) => {
+  const createOption = (label, href, words, isQuicktask = false, target = '') => {
     const option = createEl('a', '', ['list-group-item', 'list-group-item-action']);
     option.append(highlight(label, words));
     option.id = `command-option-${resultList.children.length}`;
     option.setAttribute('role', 'option');
     option.href = href;
     option.tabIndex = -1;
+    option.dataset.label = label;
 
-    // Indented with a "+" below the item it belongs to.
+    if (target === '_blank' || option.origin !== window.location.origin) {
+      option.target = '_blank';
+      option.rel = 'noopener noreferrer';
+      option.append(createEl('span', ` (${Joomla.Text._('JGLOBAL_OPENS_IN_A_NEW_WINDOW')})`, ['visually-hidden']));
+    }
+
     if (isQuicktask) {
       const icon = createEl('span', '', ['icon-plus']);
       icon.setAttribute('aria-hidden', 'true');
@@ -222,11 +227,16 @@ const initCommandsModal = () => {
     noResults.hidden = items.length > 0;
     searchInput.setAttribute('aria-expanded', items.length > 0 ? 'true' : 'false');
 
+    // Links to other sites after the backend pages, both alphabetically.
+    // Menu links like the help preset's language forum link are backend URLs that redirect to the forum.
+    const isExternal = (item) => item.target === '_blank'
+      || new URL(item.link, window.location.href).origin !== window.location.origin;
+
     items
-      .map((item) => ({ ...item, label: getLabel(item.group, item.title) }))
-      .sort((a, b) => a.label.localeCompare(b.label))
+      .map((item) => ({ ...item, label: getLabel(item.group, item.title), external: isExternal(item) }))
+      .sort((a, b) => a.external - b.external || a.label.localeCompare(b.label))
       .forEach((item) => {
-        createOption(item.label, item.link, words);
+        createOption(item.label, item.link, words, false, item.target);
 
         if (item.quicktask) {
           createOption(getLabel(item.group, item.quicktask.title), item.quicktask.link, words, true);
@@ -238,7 +248,8 @@ const initCommandsModal = () => {
     setActive(kept !== -1 ? kept : 0);
 
     // Enter pressed while loading: open the first result once it is there.
-    if (pendingEnter && options[0]) {
+    // Not for new-tab links: a delayed window.open() would be caught by popup blockers.
+    if (pendingEnter && options[0] && options[0].target !== '_blank') {
       window.location.assign(options[0].href);
     }
 
@@ -374,9 +385,9 @@ const initCommandsModal = () => {
       setActive((activeIndex + step + options.length) % options.length);
     } else if (event.key === 'Enter' && activeIndex !== -1) {
       event.preventDefault();
-      const { href } = options[activeIndex];
+      const { href, target } = options[activeIndex];
 
-      if (event.ctrlKey || event.metaKey) {
+      if (event.ctrlKey || event.metaKey || target === '_blank') {
         window.open(href, '_blank', 'noopener');
       } else {
         window.location.assign(href);
