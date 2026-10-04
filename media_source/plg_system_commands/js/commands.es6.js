@@ -99,8 +99,44 @@ const initCommandsModal = () => {
   // "Group: Title", without the group when the title already contains it ("Global Configuration").
   const getLabel = (group, title) => (group && !title.toLowerCase().includes(group.toLowerCase()) ? `${group}: ${title}` : title);
 
-  const createOption = (label, href, isQuicktask = false) => {
-    const option = createEl('a', label, ['list-group-item', 'list-group-item-action']);
+  // Wrap every occurrence of the search words in <mark>, built from text nodes (no innerHTML).
+  const highlight = (text, words) => {
+    const lower = text.toLowerCase();
+    const ranges = [];
+
+    words.forEach((word) => {
+      const needle = word.toLowerCase();
+      let index = lower.indexOf(needle);
+
+      while (index !== -1) {
+        ranges.push([index, index + needle.length]);
+        index = lower.indexOf(needle, index + needle.length);
+      }
+    });
+
+    ranges.sort((a, b) => a[0] - b[0]);
+
+    const fragment = document.createDocumentFragment();
+    let position = 0;
+
+    ranges.forEach(([start, end]) => {
+      if (end <= position) {
+        return;
+      }
+
+      fragment.append(text.slice(position, Math.max(start, position)));
+      fragment.append(createEl('mark', text.slice(Math.max(start, position), end)));
+      position = end;
+    });
+
+    fragment.append(text.slice(position));
+
+    return fragment;
+  };
+
+  const createOption = (label, href, words, isQuicktask = false) => {
+    const option = createEl('a', '', ['list-group-item', 'list-group-item-action']);
+    option.append(highlight(label, words));
     option.id = `command-option-${resultList.children.length}`;
     option.setAttribute('role', 'option');
     option.href = href;
@@ -126,7 +162,9 @@ const initCommandsModal = () => {
     resultList.classList.toggle('opacity-50', value);
   };
 
-  const renderItems = (items, statusText) => {
+  const renderItems = (items, statusText, search) => {
+    const words = search.split(/\s+/).filter(Boolean);
+
     resultList.replaceChildren();
     Joomla.removeMessages(errorContainer);
     noResults.textContent = statusText;
@@ -137,10 +175,10 @@ const initCommandsModal = () => {
       .map((item) => ({ ...item, label: getLabel(item.group, item.title) }))
       .sort((a, b) => a.label.localeCompare(b.label))
       .forEach((item) => {
-        createOption(item.label, item.link);
+        createOption(item.label, item.link, words);
 
         if (item.quicktask) {
-          createOption(getLabel(item.group, item.quicktask.title), item.quicktask.link, true);
+          createOption(getLabel(item.group, item.quicktask.title), item.quicktask.link, words, true);
         }
       });
 
@@ -207,7 +245,7 @@ const initCommandsModal = () => {
         }
 
         if (response.success && response.data && response.data.items) {
-          renderItems(response.data.items, response.data.status);
+          renderItems(response.data.items, response.data.status, search);
           announce(response.data.status);
         } else {
           showError(response.message);

@@ -207,7 +207,16 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         unset($item);
 
-        $matches = fn ($group, $title) => mb_stripos($group . ': ' . $title, $search) !== false;
+        $words   = preg_split('/\s+/u', trim($search), -1, PREG_SPLIT_NO_EMPTY);
+        $matches = function ($group, $title) use ($words) {
+            foreach ($words as $word) {
+                if (mb_stripos($group . ': ' . $title, $word) === false) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
         $results = [];
 
         foreach ($items as $item) {
