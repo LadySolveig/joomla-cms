@@ -96,3 +96,22 @@ joomla-dialog.command-palette-dialog .command-dialog-hint {
 joomla-dialog.command-palette-dialog .command-dialog-field.has-hint .form-control {
   padding-inline-end: calc(var(--command-hint-size) + 1.5rem);
 }
+
+/* Key hints below the list; not shown on touch devices without a keyboard. */
+joomla-dialog.command-palette-dialog .command-dialog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+  padding: .75rem 0 0;
+  margin: .75rem 0 0;
+  font-size: .875rem;
+  color: var(--secondary-color);
+  list-style: none;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (pointer: coarse) {
+  joomla-dialog.command-palette-dialog .command-dialog-footer {
+    display: none;
+  }
+}

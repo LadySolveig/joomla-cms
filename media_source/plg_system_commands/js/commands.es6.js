@@ -27,6 +27,8 @@ const createEl = (nodeName, text = '', classList = []) => {
   return el;
 };
 
+const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
+
 let commandsDialog;
 let announce = () => {};
 const initCommandsModal = () => {
@@ -40,6 +42,11 @@ const initCommandsModal = () => {
   // Default template for dialog search
   const template = document.querySelector('#command-dialog-search');
   content.appendChild(template.content.cloneNode(true));
+
+  // Footer: show the platform's modifier key (⌘ or Ctrl).
+  content.querySelectorAll('[data-platform]').forEach((key) => {
+    key.hidden = (key.dataset.platform === 'mac') !== isMac;
+  });
 
   // Default template for the popup
   const popupTemplate = `<div class="joomla-dialog-container">
@@ -340,7 +347,6 @@ const showCommandsModal = () => {
 // Only the platform's variant of the configured combinations: "cmd" on macOS, "ctrl" elsewhere.
 // Otherwise cmd+k would also bind Win+K on Windows. Combinations without either are always kept.
 const getPlatformHotkeys = (hotkeyList) => {
-  const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
   const foreign = isMac ? /\bctrl\b/i : /\b(cmd|command|⌘)\b/i;
   const all = hotkeyList.split(',').map((key) => key.trim()).filter(Boolean);
   const own = all.filter((key) => !foreign.test(key));

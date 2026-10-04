@@ -29,4 +29,25 @@ use Joomla\CMS\Language\Text;
     <p class="text-muted mb-0" id="command-dialog-no-results" hidden></p>
     <div id="command-dialog-error"></div>
     <div class="visually-hidden" id="command-dialog-status" role="status"></div>
+    <ul class="command-dialog-footer" aria-label="<?php echo Text::_('PLG_SYSTEM_COMMANDS_FOOTER_LABEL'); ?>">
+        <li>
+            <kbd><span aria-hidden="true">↑</span><span class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_KEY_UP'); ?></span></kbd>
+            <kbd><span aria-hidden="true">↓</span><span class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_KEY_DOWN'); ?></span></kbd>
+            <?php echo Text::_('PLG_SYSTEM_COMMANDS_FOOTER_NAVIGATE'); ?>
+        </li>
+        <li>
+            <kbd><span aria-hidden="true">↵</span><span class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_KEY_ENTER'); ?></span></kbd>
+            <?php echo Text::_('PLG_SYSTEM_COMMANDS_FOOTER_OPEN'); ?>
+        </li>
+        <li>
+            <kbd data-platform="mac" hidden><span aria-hidden="true">⌘</span><span class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_KEY_COMMAND'); ?></span></kbd>
+            <kbd data-platform="other">Ctrl</kbd>
+            <kbd><span aria-hidden="true">↵</span><span class="visually-hidden"><?php echo Text::_('PLG_SYSTEM_COMMANDS_KEY_ENTER'); ?></span></kbd>
+            <?php echo Text::_('PLG_SYSTEM_COMMANDS_FOOTER_NEW_TAB'); ?>
+        </li>
+        <li>
+            <kbd>Esc</kbd>
+            <?php echo Text::_('PLG_SYSTEM_COMMANDS_FOOTER_CLOSE'); ?>
+        </li>
+    </ul>
 </template>
