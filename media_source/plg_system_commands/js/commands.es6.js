@@ -54,7 +54,6 @@ const initCommandsModal = () => {
 
   // Default template for the popup
   const popupTemplate = `<div class="joomla-dialog-container">
-  <header class="joomla-dialog-header"></header>
   <section class="joomla-dialog-body"></section>
   </div>`;
 
@@ -259,7 +258,7 @@ const initCommandsModal = () => {
 
     items
       .map((item) => ({ ...item, label: getLabel(item.group, item.title), external: isExternal(item) }))
-      .sort((a, b) => a.external - b.external || a.label.localeCompare(b.label))
+      .sort((a, b) => a.external - b.external || a.label.localeCompare(b.label, undefined, { numeric: true }))
       .forEach((item) => {
         createOption(item.label, item.link, words, false, item.target);
 
