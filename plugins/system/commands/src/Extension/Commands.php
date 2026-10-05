@@ -283,7 +283,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     {
         $db    = Factory::getContainer()->get(DatabaseInterface::class);
         $query = $db->getQuery(true)
-            ->select([$db->quoteName('module'), $db->quoteName('params')])
+            ->select($db->quoteName(['module', 'params', 'access', 'publish_up', 'publish_down']))
             ->from($db->quoteName('#__modules'))
             ->where(
                 [
@@ -294,8 +294,10 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             ->whereIn($db->quoteName('module'), ['mod_menu', 'mod_submenu'], ParameterType::STRING)
             ->order($db->quoteName('ordering'));
 
-        $presets   = ['default'];
-        $menutypes = [];
+        $presets    = ['default'];
+        $menutypes  = [];
+        $viewLevels = $this->getApplication()->getIdentity()->getAuthorisedViewLevels();
+        $now        = Factory::getDate()->toSql();
 
         foreach ($db->setQuery($query)->loadObjectList() as $module) {
             $params   = new Registry($module->params);
@@ -303,9 +305,20 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
             if ($menutype === '*') {
                 $presets[] = $params->get('preset', $module->module === 'mod_menu' ? 'default' : '');
-            } else {
-                $menutypes[] = $menutype;
+
+                continue;
             }
+
+            // Custom menu items have no access level: the module decides who sees them and when.
+            if (
+                !\in_array((int) $module->access, $viewLevels, true)
+                || ($module->publish_up !== null && $module->publish_up > $now)
+                || ($module->publish_down !== null && $module->publish_down < $now)
+            ) {
+                continue;
+            }
+
+            $menutypes[] = $menutype;
         }
 
         $presets = array_merge($presets, (array) $this->params->get('presets', []));
