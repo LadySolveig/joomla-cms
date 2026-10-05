@@ -270,8 +270,18 @@ const initCommandsModal = () => {
 
     // Links to other sites after the backend pages, both alphabetically.
     // Menu links like the help preset's language forum link are backend URLs that redirect to the forum.
-    const isExternal = (item) => item.target === '_blank'
-      || new URL(item.link, window.location.href).origin !== window.location.origin;
+    const isExternal = (item) => {
+      if (item.target === '_blank') {
+        return true;
+      }
+
+      // A malformed link (e.g. "http://") must not stop the whole list from rendering.
+      try {
+        return new URL(item.link, window.location.href).origin !== window.location.origin;
+      } catch (e) {
+        return true;
+      }
+    };
 
     items
       .map((item) => ({ ...item, label: getLabel(item.group, item.title), external: isExternal(item) }))
