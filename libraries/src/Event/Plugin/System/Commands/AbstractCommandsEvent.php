@@ -18,8 +18,8 @@ use Joomla\CMS\Event\AbstractImmutableEvent;
 /**
  * Base class for the command palette events.
  *
- * Items need a "title" and "link"; "group", "target" and "quicktask" are optional. Invalid items
- * are dropped. Listeners only get the core.login.admin guarantee.
+ * Items need a "title" and a relative or http(s) "link"; "group", "target" and "quicktask" are
+ * optional. Invalid items are dropped. Listeners only get the core.login.admin guarantee.
  *
  * @since  __DEPLOY_VERSION__
  */
@@ -94,10 +94,22 @@ abstract class AbstractCommandsEvent extends AbstractImmutableEvent
     protected function onSetItems(array $value): array
     {
         $isText = static fn ($text): bool => \is_string($text) && trim($text) !== '';
-        $items  = [];
+
+        // Relative or http(s) only, no javascript: and the like. parse_url() is false for broken URLs.
+        $isLink = static function ($link) use ($isText): bool {
+            if (!$isText($link)) {
+                return false;
+            }
+
+            $scheme = parse_url(trim($link), PHP_URL_SCHEME);
+
+            return $scheme === null || \is_string($scheme) && \in_array(strtolower($scheme), ['http', 'https'], true);
+        };
+
+        $items = [];
 
         foreach ($value as $item) {
-            if (!\is_array($item) || !$isText($item['title'] ?? null) || !$isText($item['link'] ?? null)) {
+            if (!\is_array($item) || !$isText($item['title'] ?? null) || !$isLink($item['link'] ?? null)) {
                 continue;
             }
 
@@ -107,7 +119,7 @@ abstract class AbstractCommandsEvent extends AbstractImmutableEvent
 
             if (
                 isset($item['quicktask'])
-                && (!\is_array($item['quicktask']) || !$isText($item['quicktask']['title'] ?? null) || !$isText($item['quicktask']['link'] ?? null))
+                && (!\is_array($item['quicktask']) || !$isText($item['quicktask']['title'] ?? null) || !$isLink($item['quicktask']['link'] ?? null))
             ) {
                 unset($item['quicktask']);
             }

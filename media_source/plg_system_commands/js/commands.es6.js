@@ -32,6 +32,19 @@ const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platfor
 // Edit views (menu hidden) open every result in a new tab, so the form and its check-out stay intact.
 const isEditMode = Joomla.getOptions('plg_system_commands.editMode', false);
 
+// Relative or http(s) only: the browser's parser decides what a click does, so check with it too.
+const isWebLink = (link) => {
+  try {
+    return ['http:', 'https:'].includes(new URL(link, window.location.href).protocol);
+  } catch (e) {
+    return false;
+  }
+};
+
+const onlyWebLinks = (items) => items
+  .filter((item) => isWebLink(item.link))
+  .map((item) => (item.quicktask && !isWebLink(item.quicktask.link) ? { ...item, quicktask: null } : item));
+
 let commandsDialog;
 let announce = () => {};
 let loadIfNeeded = () => {};
@@ -380,7 +393,7 @@ const initCommandsModal = () => {
         return;
       }
 
-      dynamicItems = data.items;
+      dynamicItems = onlyWebLinks(data.items);
 
       if (dynamicItems.length) {
         const selected = getOptions()[activeIndex];
@@ -476,7 +489,7 @@ const initCommandsModal = () => {
         return;
       }
 
-      staticItems = data.items;
+      staticItems = onlyWebLinks(data.items);
       statusTexts = data.status;
       hasDynamic = data.dynamic;
       update();
