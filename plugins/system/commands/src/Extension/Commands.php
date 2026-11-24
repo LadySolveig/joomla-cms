@@ -44,14 +44,6 @@ use Joomla\Registry\Registry;
 final class Commands extends CMSPlugin implements SubscriberInterface
 {
     /**
-     * Flag to check if command dialog template is appended to body.
-     *
-     * @var    boolean
-     * @since  __DEPLOY_VERSION__
-     */
-    protected $isTemplateAppend = false;
-
-    /**
      * Returns an array of events this subscriber will listen to.
      *
      * The array keys are event names and the value can be:
@@ -72,14 +64,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     {
         return [
             'onBeforeCompileHead' => 'initialize',
-            'onAfterRender'       => 'onAfterRender',
             'onAjaxCommands'      => 'onAjaxCommands',
             'onLoadShortcuts'     => 'addShortcut',
         ];
     }
 
     /**
-     * Add the javascript for the command palette
+     * Add the javascript and the dialog template for the command palette.
      *
      * @return  void
      *
@@ -110,10 +101,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
 
         $document->addScriptOptions('plg_system_commands.openhotkey', $openHotKey);
 
-        $input = $this->getApplication()->getInput();
-        $document->addScriptOptions('plg_system_commands.context', $input->getCmd('option') . '.' . $input->getCmd('view'));
+        $input    = $this->getApplication()->getInput();
+        $editMode = $input->getBool('hidemainmenu');
 
-        $document->addScriptOptions('plg_system_commands.editMode', $input->getBool('hidemainmenu'));
+        $document->addScriptOptions('plg_system_commands.context', $input->getCmd('option') . '.' . $input->getCmd('view'));
+        $document->addScriptOptions('plg_system_commands.editMode', $editMode);
+
+        $document->addCustomTag(LayoutHelper::render('joomla.commands.default', ['editMode' => $editMode]));
     }
 
     /**
@@ -569,34 +563,5 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         }
 
         return true;
-    }
-
-    /**
-     * Add Html-Template for the command palette.
-     *
-     * @return  void
-     *
-     * @since   __DEPLOY_VERSION__
-     */
-    public function onAfterRender(): void
-    {
-        /** @var \Joomla\Application\WebApplicationInterface $app */
-        $app = $this->getApplication();
-
-        if (!$app->isClient('administrator') || !($app->getDocument() instanceof \Joomla\CMS\Document\HtmlDocument)) {
-            return;
-        }
-
-        $bodyBuffer = $app->getBody();
-
-        if (!$this->isTemplateAppend) {
-            $templateCommandPalette = LayoutHelper::render('joomla.commands.default', ['editMode' => $app->getInput()->getBool('hidemainmenu')]);
-
-            $bodyBuffer = str_ireplace('</body>', $templateCommandPalette . '</body>', $bodyBuffer);
-
-            $app->setBody($bodyBuffer);
-
-            $this->isTemplateAppend = true;
-        }
     }
 }
