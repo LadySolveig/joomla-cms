@@ -11,6 +11,7 @@
 namespace Joomla\Plugin\System\Commands\Extension;
 
 use Joomla\CMS\Access\Exception\NotAllowed;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\Plugin\AjaxEvent;
 use Joomla\CMS\Event\Plugin\System\Commands as CommandsEvent;
 use Joomla\CMS\Factory;
@@ -519,7 +520,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $uri    = new Uri($link);
         $option = $uri->getVar('option');
 
-        if (!$option) {
+        if (!\is_string($option) || !ComponentHelper::isInstalled($option)) {
             return '';
         }
 
