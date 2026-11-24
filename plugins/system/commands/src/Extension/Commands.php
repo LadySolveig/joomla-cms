@@ -43,7 +43,7 @@ use Joomla\Registry\Registry;
 final class Commands extends CMSPlugin implements SubscriberInterface
 {
     /**
-     * Flag to check if command dialog template is append to body.
+     * Flag to check if command dialog template is appended to body.
      *
      * @var    boolean
      * @since  __DEPLOY_VERSION__
@@ -84,7 +84,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @since   __DEPLOY_VERSION__
      */
-    public function initialize()
+    public function initialize(): void
     {
         if (!$this->getApplication()->isClient('administrator')) {
             return;
@@ -147,9 +147,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @return  bool
      *
-     * @since __DEPLOY_VERSION__
+     * @since   __DEPLOY_VERSION__
      *
-     * @throws \Exception
+     * @throws  \Exception
      */
     private function isAllowedUser(): bool
     {
@@ -167,7 +167,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @throws  NotAllowed  If the token is invalid or the user is not allowed
      */
-    public function onAjaxCommands(AjaxEvent $event)
+    public function onAjaxCommands(AjaxEvent $event): void
     {
         if (!Session::checkToken('request')) {
             throw new NotAllowed(Text::_('JINVALID_TOKEN'), 403);
@@ -271,7 +271,6 @@ final class Commands extends CMSPlugin implements SubscriberInterface
             'dynamic' => !empty($this->getDispatcher()->getListeners('onCommandsSearch')),
         ];
 
-        // https://github.com/joomla/joomla-cms/pull/43530 for J5.3
         $event->updateEventResult($response);
     }
 
@@ -380,7 +379,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      * @param   string                 $context  Translated title of the enclosing heading or
      *                                           parent component, used as the group.
      *
-     * @return array
+     * @return  array
+     *
+     * @since   __DEPLOY_VERSION__
      */
     protected function normalizeMenuItems($parent, string $context = ''): array
     {
@@ -454,12 +455,9 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     /**
      * Collect mod_quickicon's dashboard buttons as palette items.
      *
-     * All "show_*" flags are enabled: they are display preferences, not ACL - access is checked
-     * per button instead.
+     * @return  array
      *
-     * @return array
-     *
-     * @since __DEPLOY_VERSION__
+     * @since   __DEPLOY_VERSION__
      */
     protected function getQuickIconItems(): array
     {
@@ -469,7 +467,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $manifest = simplexml_load_file(JPATH_ADMINISTRATOR . '/modules/mod_quickicon/mod_quickicon.xml');
         $flags    = $manifest ? array_map('strval', $manifest->xpath('//field[starts-with(@name, "show_")]/@name') ?: []) : [];
 
-        // 1, not 2: "show with count" would only add an ajaxurl the palette doesn't use.
+        // All show_* flags on (display preferences, not ACL); 1, not 2: a count would only add an ajaxurl.
         $buttons = (new QuickIconHelper())->getButtons(new Registry(array_fill_keys($flags, 1)), $app);
 
         $items = [];
@@ -514,7 +512,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @return  string
      *
-     * @since __DEPLOY_VERSION__
+     * @since   __DEPLOY_VERSION__
      */
     private function getComponentGroup(string $link): string
     {
@@ -547,14 +545,13 @@ final class Commands extends CMSPlugin implements SubscriberInterface
     }
 
     /**
-     * Check a quick icon button's 'access' value the same way
-     * \Joomla\CMS\HTML\Helpers\Icons::button() does.
+     * Check a quick icon button's 'access' value like Icons::button() does.
      *
      * @param   array|bool  $access  The button's access value.
      *
      * @return  bool
      *
-     * @since __DEPLOY_VERSION__
+     * @since   __DEPLOY_VERSION__
      */
     private function isQuickIconAllowed($access): bool
     {
@@ -580,7 +577,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
      *
      * @since   __DEPLOY_VERSION__
      */
-    public function onAfterRender()
+    public function onAfterRender(): void
     {
         /** @var \Joomla\Application\WebApplicationInterface $app */
         $app = $this->getApplication();
