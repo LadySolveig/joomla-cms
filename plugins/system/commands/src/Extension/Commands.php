@@ -18,6 +18,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Menu\AdministratorMenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
@@ -182,6 +183,8 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         }
 
         $this->loadLanguage();
+
+        PluginHelper::importPlugin('commands', null, true, $this->getDispatcher());
 
         $input   = $app->getInput();
         $context = $input->getCmd('context', '');
