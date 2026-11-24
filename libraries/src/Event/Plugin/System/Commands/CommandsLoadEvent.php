@@ -16,7 +16,7 @@ namespace Joomla\CMS\Event\Plugin\System\Commands;
 /**
  * Concrete event class for the onCommandsLoad event.
  *
- * Collects the static palette items once per page; the browser filters them itself.
+ * Static items, collected once per page and filtered client-side.
  *
  * @since  __DEPLOY_VERSION__
  */

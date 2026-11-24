@@ -138,8 +138,6 @@ const initCommandsModal = () => {
     }
   };
 
-  // The link itself is the option: no interactive element nested inside an option, and mouse
-  // users keep middle-click and "open in new tab".
   // "Group: Title", without the group when the title already contains it ("Global Configuration").
   const getLabel = (group, title) => (group && !title.toLowerCase().includes(group.toLowerCase()) ? `${group}: ${title}` : title);
 
@@ -179,6 +177,7 @@ const initCommandsModal = () => {
   };
 
   const createOption = (label, href, words, isQuicktask = false, target = '') => {
+    // The link itself is the option: no interactive element nested inside an option.
     const option = createEl('a', '', ['list-group-item', 'list-group-item-action']);
 
     // Screen readers get one plain text: Orca reads the <mark> pieces of the highlighted label as
@@ -260,8 +259,6 @@ const initCommandsModal = () => {
 
   // Clear first: screen readers skip a live region update that repeats the same text.
   // Delayed, so typing doesn't trigger an announcement per keystroke.
-  // Right after opening, wait for the dialog announcement: Orca drops live region text that
-  // changes while it is still processing the new dialog.
   let lastStatus = '';
   let announceTimeout;
   announce = (text = lastStatus) => {
@@ -403,8 +400,7 @@ const initCommandsModal = () => {
     }, true);
   };
 
-  // The count plus the preselected result, so screen reader users know what Enter opens without
-  // aria-activedescendant reading the first option on every keystroke.
+  // The count plus the preselected result: aria-activedescendant is only set after ↑/↓.
   const withSelection = (countText) => {
     const selected = getOptions()[activeIndex];
 

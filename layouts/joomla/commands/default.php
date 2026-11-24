@@ -22,8 +22,6 @@ $editMode = !empty($displayData['editMode']);
 ?>
 <template id="command-dialog-search">
     <div class="command-dialog-search d-flex align-items-center gap-2">
-        <?php // Label, description and footer are aria-hidden (still used via aria-labelledby/-describedby): Orca reads all
-              // text of a dialog when it opens, then the focused field, so they would be heard twice. ?>
         <label for="command_search" class="visually-hidden" id="command_search-label" aria-hidden="true"><?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_LABEL'); ?></label>
         <div class="command-dialog-field position-relative flex-grow-1">
             <input type="search" name="command[search]" id="command_search" value="" class="form-control" autocomplete="off" role="combobox" aria-labelledby="command_search-label" aria-controls="command-dialog-search-result" aria-expanded="true" aria-autocomplete="list" aria-describedby="command_search-desc<?php echo $editMode ? ' command-dialog-edit-mode' : ''; ?>" placeholder="<?php echo Text::_('PLG_SYSTEM_COMMANDS_SEARCH_PLACEHOLDER'); ?>" inputmode="search">

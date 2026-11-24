@@ -16,7 +16,7 @@ namespace Joomla\CMS\Event\Plugin\System\Commands;
 /**
  * Concrete event class for the onCommandsSearch event.
  *
- * For term-dependent results only; static items belong in onCommandsLoad.
+ * Term-dependent results, requested from the server while typing.
  *
  * @since  __DEPLOY_VERSION__
  */
