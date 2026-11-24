@@ -64,7 +64,7 @@ describe('Test that the command palette system plugin', () => {
         path: 'automated-test-articles',
         menutype: 'automated-test-menu',
         client_id: 1,
-        link: 'index.php?option=com_content&view=articles',
+        link: 'index.php?option=com_content&view=articles&filter[search]=automated',
       }))
       .then(() => cy.db_createModule({
         title: 'automated test menu', module: 'mod_menu', position: 'menu', client_id: 1, access: 1, params: '{"menutype":"automated-test-menu"}',
@@ -91,7 +91,7 @@ describe('Test that the command palette system plugin', () => {
         path: 'automated-test-articles',
         menutype: 'automated-test-menu',
         client_id: 1,
-        link: 'index.php?option=com_content&view=articles',
+        link: 'index.php?option=com_content&view=articles&filter[search]=automated',
       }))
       // Access level 6 is "Super Users"
       .then(() => cy.db_createModule({
