@@ -10,7 +10,6 @@ joomla-dialog.command-palette-dialog dialog {
   max-block-size: 70vh;
 }
 
-/* Same backdrop as Joomla's Bootstrap modals. */
 joomla-dialog.command-palette-dialog dialog::backdrop {
   background-color: rgba(0, 0, 0, .5);
 }
@@ -46,6 +45,10 @@ joomla-dialog.command-palette-dialog .command-dialog-quicktask {
 
 joomla-dialog.command-palette-dialog .command-dialog-quicktask .icon-plus {
   margin-inline-end: .5rem;
+}
+
+joomla-dialog.command-palette-dialog mark {
+  padding: 0;
 }
 
 joomla-dialog.command-palette-dialog [role="option"][aria-selected="true"] {
