@@ -179,7 +179,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface
         $app = $this->getApplication();
 
         if (!$app->isClient('administrator') || !$this->isAllowedUser()) {
-            throw new NotAllowed($this->getApplication()->getLanguage()->_('JGLOBAL_AUTH_ACCESS_DENIED'), 403);
+            throw new NotAllowed(Text::_('JGLOBAL_AUTH_ACCESS_DENIED'), 403);
         }
 
         $this->loadLanguage();
