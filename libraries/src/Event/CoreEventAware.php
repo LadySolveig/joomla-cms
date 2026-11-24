@@ -85,6 +85,9 @@ trait CoreEventAware
         'onWorkflowFunctionalityUsed' => Workflow\WorkflowFunctionalityUsedEvent::class,
         'onWorkflowAfterTransition'   => Workflow\WorkflowTransitionEvent::class,
         'onWorkflowBeforeTransition'  => Workflow\WorkflowTransitionEvent::class,
+        // Plugin: System, Commands
+        'onCommandsLoad'   => Plugin\System\Commands\CommandsLoadEvent::class,
+        'onCommandsSearch' => Plugin\System\Commands\CommandsSearchEvent::class,
         // Plugin: System, Schemaorg
         'onSchemaBeforeCompileHead' => Plugin\System\Schemaorg\BeforeCompileHeadEvent::class,
         'onSchemaPrepareData'       => Plugin\System\Schemaorg\PrepareDataEvent::class,
