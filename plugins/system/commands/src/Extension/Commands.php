@@ -24,7 +24,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
-use Joomla\Database\DatabaseInterface;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Event\DispatcherAwareInterface;
 use Joomla\Event\DispatcherAwareTrait;
@@ -45,6 +45,7 @@ use Joomla\Registry\Registry;
  */
 final class Commands extends CMSPlugin implements SubscriberInterface, DispatcherAwareInterface
 {
+    use DatabaseAwareTrait;
     use DispatcherAwareTrait;
 
     /**
@@ -282,7 +283,7 @@ final class Commands extends CMSPlugin implements SubscriberInterface, Dispatche
      */
     private function getMenuRoots(): array
     {
-        $db    = Factory::getContainer()->get(DatabaseInterface::class);
+        $db    = $this->getDatabase();
         $query = $db->getQuery(true)
             ->select($db->quoteName(['module', 'params', 'access', 'publish_up', 'publish_down']))
             ->from($db->quoteName('#__modules'))
