@@ -26,6 +26,8 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
 use Joomla\Database\DatabaseInterface;
 use Joomla\Database\ParameterType;
+use Joomla\Event\DispatcherAwareInterface;
+use Joomla\Event\DispatcherAwareTrait;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Module\Quickicon\Administrator\Helper\QuickIconHelper;
@@ -41,8 +43,10 @@ use Joomla\Registry\Registry;
  *
  * @since  __DEPLOY_VERSION__
  */
-final class Commands extends CMSPlugin implements SubscriberInterface
+final class Commands extends CMSPlugin implements SubscriberInterface, DispatcherAwareInterface
 {
+    use DispatcherAwareTrait;
+
     /**
      * Returns an array of events this subscriber will listen to.
      *

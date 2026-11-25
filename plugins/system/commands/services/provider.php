@@ -32,15 +32,15 @@ return new class () implements ServiceProviderInterface {
     {
         $container->set(
             PluginInterface::class,
-            function (Container $container) {
-                $plugin     = new Commands(
-                    $container->get(DispatcherInterface::class),
+            $container->lazy(Commands::class, function (Container $container) {
+                $plugin = new Commands(
                     (array) PluginHelper::getPlugin('system', 'commands')
                 );
+                $plugin->setDispatcher($container->get(DispatcherInterface::class));
                 $plugin->setApplication(Factory::getApplication());
 
                 return $plugin;
-            }
+            })
         );
     }
 };
