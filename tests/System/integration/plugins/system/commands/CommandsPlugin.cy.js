@@ -12,6 +12,17 @@ describe('Test that the command palette system plugin', () => {
     cy.get('#command-dialog-search-result [role="option"]').should('contain', 'Global Configuration');
   });
 
+  it('can open the palette while typing in a field', () => {
+    cy.doAdministratorLogin();
+    cy.visit('/administrator/index.php?option=com_content&task=article.add');
+    cy.intercept('GET', '**/administrator/index.php?option=com_ajax&group=system&plugin=commands&format=json&*').as('commands');
+    cy.get('#jform_title').type('{ctrl}k');
+
+    cy.wait('@commands');
+    cy.get('#command_search').should('have.focus');
+    cy.get('#jform_title').should('have.value', '');
+  });
+
   it('can not load items without a token', () => {
     cy.doAdministratorLogin();
     cy.request('/administrator/index.php?option=com_ajax&group=system&plugin=commands&format=json&mode=load')

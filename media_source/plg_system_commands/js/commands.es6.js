@@ -533,6 +533,24 @@ const getPlatformHotkeys = (hotkeyList) => {
   return (own.length ? own : all).join(',');
 };
 
+// hotkeys ignores form fields. Combinations with Ctrl, Cmd or Alt type nothing, so they open the palette there too.
+const isField = (target) => target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+const getFieldHotkeys = (hotkeyList) => hotkeyList.split(',')
+  .map((combo) => combo.trim().toLowerCase().split('+'))
+  .filter((parts) => parts.some((part) => ['ctrl', 'control', 'cmd', 'command', '⌘', 'alt', 'option', '⌥'].includes(part)));
+
+const matchesHotkey = (event, parts) => {
+  const key = parts[parts.length - 1];
+  const has = (names) => parts.some((part) => names.includes(part));
+
+  return (event.key.toLowerCase() === key || event.code.toLowerCase() === `key${key}`)
+    && event.ctrlKey === has(['ctrl', 'control'])
+    && event.metaKey === has(['cmd', 'command', '⌘'])
+    && event.altKey === has(['alt', 'option', '⌥'])
+    && event.shiftKey === has(['shift']);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const openHotkey = getPlatformHotkeys(Joomla.getOptions('plg_system_commands.openhotkey'));
 
@@ -543,6 +561,16 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+    });
+
+    const fieldHotkeys = getFieldHotkeys(openHotkey);
+
+    document.addEventListener('keydown', (event) => {
+      if (isField(event.target) && !event.target.closest('.command-palette-dialog')
+        && fieldHotkeys.some((parts) => matchesHotkey(event, parts))) {
+        event.preventDefault();
+        showCommandsModal();
+      }
     });
 
     if (typeof Joomla.addShortcut === 'function') {
